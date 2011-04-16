@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import Integer,String
@@ -26,3 +28,6 @@ def main():
     session = sessionmaker(bind=engine)
     session.add(FeedSource('Asahi 政治','http://rss.asahi.com/f/asahi_politics'))
     session.commit()
+
+if __name__ == '__main__':
+    main()
