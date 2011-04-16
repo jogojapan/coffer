@@ -25,7 +25,9 @@ class FeedSource(Base):
 
 def main():
     engine = create_engine('sqlite:///test',echo=True)
-    session = sessionmaker(bind=engine)
+    FeedSource.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     session.add(FeedSource('Asahi 政治','http://rss.asahi.com/f/asahi_politics'))
     session.commit()
 
