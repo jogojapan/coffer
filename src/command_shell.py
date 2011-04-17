@@ -15,12 +15,12 @@ class CommandShell(Cmd):
     '''
     Implements a command shell for the COFFER application.
     '''
-    
+
     def __init__(self,feedstorage):
         Cmd.__init__(self)
         self._feed_storage = feedstorage
         self._end_now      = False        
-    
+
     def do_list(self,parameters):
         self._feed_storage.list_feeds(sys.stdout)
 
@@ -38,6 +38,6 @@ class CommandShell(Cmd):
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
         self._end_now = True
-    
+
     def postcmd(self,stop,line):
         return self._end_now
