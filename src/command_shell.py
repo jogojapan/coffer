@@ -41,14 +41,17 @@ class CommandShell(Cmd):
         self._end_now = True
 
     def do_current(self,parameters):
-        enable_filter = False
+        enable_filter   = False
+        check_existence = False
         parameters = shlex.split(parameters)
         try:
-            opts,args = getopt.getopt(parameters,'f',[])
+            opts,args = getopt.getopt(parameters,'fc',[])
             for o,a in opts:
                 if o == '-f':
                     enable_filter = True
-            for entry in self._coffer.current_items(enable_filter):
+                elif o == '-c':
+                    check_existence = True
+            for entry in self._coffer.current_items(enable_filter,check_existence):
                 sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
 
         except getopt.GetoptError,err:

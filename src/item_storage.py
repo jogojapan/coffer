@@ -46,4 +46,7 @@ class ItemStorage:
         self._session = session
         # Create tables that don't exits yet
         Item.metadata.create_all(self._engine)
-    
+
+    def exists(self,original_id):
+        c = self._session.query(Item).filter(Item.original_id == original_id).count()
+        return (c != 0)
