@@ -20,10 +20,10 @@ class Item(Base):
     id          = Column(Integer,primary_key=True)
     # ID obtained from the feed
     original_id = Column(String,index=True)
-    title       = Column(String,convert_unicode=True)
+    title       = Column(String(convert_unicode=True))
     date        = Column(BigInteger,index=True)
     link        = Column(String)
-    description = Column(String,convert_unicode=True)
+    description = Column(String(convert_unicode=True))
 
     def __init__(self,original_id,title,date,link,description):
         self.original_id = original_id

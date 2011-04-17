@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.types import Integer,String,Unicode
+from sqlalchemy.types import Integer,String,PickleType
 from sqlalchemy import Column
 
 Base = declarative_base()
@@ -12,15 +12,15 @@ class FeedSource(Base):
     __tablename__ = 'feed-sources'
 
     id         = Column(Integer,primary_key=True)
-    name       = Column(String,convert_unicode=True)
+    name       = Column(String(convert_unicode=True))
     url        = Column(String)
     # A list of regular expressions used to filter titles of advertisements
-    ad_filters = Column(Unicode)
+    ad_filters = Column(PickleType)
     
     def __init__(self,name,url):
         self.name       = name
         self.url        = url
-        self.ad_filters = u''
+        self.ad_filters = []
     
     def __repr__(self):
         return u'FeedSource("%s","%s")' % (self.name,self.url)
@@ -30,9 +30,7 @@ class FeedSource(Base):
     def get_url(self):
         return self.url
     def add_ad_regex(self,regex):
-        current_list = eval(self.ad_filters)
-        current_list.append(regex)
-        self.ad_filters = unicode(current_list)
+        self._ad_filters.append(regex)
 
 
 class FeedStorage:
