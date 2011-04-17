@@ -2,6 +2,8 @@
 
 import sys
 import getopt
+import os.path
+from os import mkdir
 from ConfigParser import SafeConfigParser
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -30,6 +32,10 @@ class FeedSource(Base):
 class FeedStorage:
     def __init__(self,database_path):
         # Connect to engine
+        dir = os.path.dirname(database_path)
+        if not os.path.exists(dir):
+            mkdir(dir)
+        sys.stderr.write('Connecting to database at "%s"\n' % database_path)
         self._engine = create_engine('sqlite:///%s' % database_path,echo=True)
 
         # Create tables that don't exits yet
