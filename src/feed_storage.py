@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import Integer,String
 from sqlalchemy import Column
 from sqlalchemy.orm import sessionmaker
+from command_shell import CommandShell
 # import feedparser
 
 Base = declarative_base()
@@ -41,6 +42,10 @@ class FeedStorage:
     def add_feed(self,name,url):
         self._session.add(FeedSource(name,url))
         self._session.commit()
+    
+    def list_feeds(self,out_strm):
+        for feed_source in self._session.query(FeedSource).all():
+            out_strm.write('%s\n' % str(feed_source))
         
 
 def usage():
@@ -72,8 +77,8 @@ def main():
         database_path = config_parser.get('FeedStorage','database-path')
 
     feed_storage = FeedStorage(database_path)
-    
-    feed_storage.add_feed('Asahi 政治','http://rss.asahi.com/f/asahi_politics')
+    shell = CommandShell(feed_storage)
+    shell.cmdloop()
 
 if __name__ == '__main__':
     main()
