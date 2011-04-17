@@ -1,0 +1,6 @@
+coffer (COrpus FEed Reader) is a tool that can be used to
+automatically download RSS or Atom news feeds and use the contents to
+build a text corpus for linguistic research.
+
+It is still in the early stages of development; documentation will
+become available in later stages.
