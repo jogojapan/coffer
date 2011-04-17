@@ -8,7 +8,7 @@ Created on 2011/04/17
 
 from cmd import Cmd
 import shlex
-import getopt
+#import getopt
 import sys
 
 class CommandShell(Cmd):
@@ -18,25 +18,26 @@ class CommandShell(Cmd):
     
     def __init__(self,feedstorage):
         Cmd.__init__(self)
-        self._feed_storage = feedstorage        
+        self._feed_storage = feedstorage
+        self._end_now      = False        
     
-    def interpret_cmd(self,command_tokens):
-        #feed_storage.add_feed('Asahi 政治','http://rss.asahi.com/f/asahi_politics')
-        if len(command_tokens) < 1:
-            return False
-        try:
-            if command_tokens[0] == 'list':
-                self._feed_storage.list_feeds(sys.stdout)
-            elif command_tokens[0] == 'add':
-                if len(command_tokens) != 3:
-                    sys.stderr.write("Expected 2 arguments to 'add'.\n")
-                else:
-                    self._feed_storage.add_feed(command_tokens[1],command_tokens[2])
-            else:
-                sys.stderr.write('Unknown command "%s".\n' % command_tokens[0])
-        except getopt.GetoptError,err:
-            sys.stderr.write('%s\n' % str(err))
+    def do_list(self,parameters):
+        self._feed_storage.list_feeds(sys.stdout)
+
+    def do_add(self,parameters):
+        parameters = shlex.split(parameters)
+        if len(parameters) != 2:
+            sys.stderr.write("'add' requires 2 arguments\n")
+        else:
+            self._feed_storage.add_feed(parameters[0],parameters[1])
+
+    def do_quit(self,parameters):
+        sys.stdout.write('\n')
+        self._end_now = True
+
+    def do_EOF(self,parameters):
+        sys.stdout.write('\n')
+        self._end_now = True
     
     def postcmd(self,stop,line):
-        command_tokens = shlex.split(line)
-        return self.interpret_cmd(command_tokens)
+        return self._end_now
