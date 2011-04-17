@@ -42,8 +42,8 @@ class Coffer:
         Returns a generator for the list of current items, i.e. the
         current list of fresh items returned by all known feeds.
         '''
-        for feed in self._coffer._feed_storage.feeds():
-            feed_results =feedparser.parse(feed.get_url())
+        for feed in self._feed_storage.feeds():
+            feed_results = feedparser.parse(feed.get_url())
             for entry in feed_results.entries:
                 sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
                 
