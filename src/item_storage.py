@@ -36,3 +36,14 @@ class Item(Base):
         return u'Item(%s,"%s",%s)' % (strptime(gmtime(self._date)),
                                       self._title,
                                       self._link)
+
+class ItemStorage:
+    '''
+    Representation of the items table.
+    '''
+    def __init__(self,engine,session):
+        self._engine  = engine
+        self._session = session
+        # Create tables that don't exits yet
+        Item.metadata.create_all(self._engine)
+    

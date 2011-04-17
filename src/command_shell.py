@@ -16,20 +16,20 @@ class CommandShell(Cmd):
     Implements a command shell for the COFFER application.
     '''
 
-    def __init__(self,feedstorage):
+    def __init__(self,coffer):
         Cmd.__init__(self)
-        self._feed_storage = feedstorage
-        self._end_now      = False        
+        self._coffer  = coffer
+        self._end_now = False        
 
     def do_list(self,parameters):
-        self._feed_storage.list_feeds(sys.stdout)
+        self._coffer._feed_storage.list_feeds(sys.stdout)
 
     def do_add(self,parameters):
         parameters = shlex.split(parameters)
         if len(parameters) != 2:
             sys.stderr.write("'add' requires 2 arguments\n")
         else:
-            self._feed_storage.add_feed(parameters[0],parameters[1])
+            self._coffer._feed_storage.add_feed(parameters[0],parameters[1])
 
     def do_quit(self,parameters):
         sys.stdout.write('\n')

@@ -6,10 +6,36 @@ Created on 2011/04/17
 
 import sys
 import getopt
+import os.path
+from os import mkdir
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from ConfigParser import SafeConfigParser
 from command_shell import CommandShell
 from feed_storage import FeedStorage
-from item_storage import Item
+from item_storage import ItemStorage
+
+class Coffer:
+    def __init__(self,database_path):
+        # Connect to engine
+        dir = os.path.dirname(database_path)
+        if not os.path.exists(dir):
+            mkdir(dir)
+        sys.stderr.write('Connecting to database at "%s"\n' % database_path)
+        self._engine = create_engine('sqlite:///%s' % database_path,echo=True)
+
+        # Start session
+        Session = sessionmaker(bind=self._engine)
+        self._session = Session()
+        # Initialize feed storage
+        self._feed_storage = FeedStorage(self._engine,self._session)
+        # Initialize item storage
+        self._item_storage = ItemStorage(self._engine,self._session)
+
+    def run_command_shell(self):
+        shell = CommandShell(self)
+        shell.cmdloop()
+
 
 def usage():
     sys.stderr.write('Usage: coffer [-c <config-path>]\n')
@@ -36,12 +62,12 @@ def main():
     config_parser.read(config_path)
 
     database_path = 'test'
-    if config_parser.has_option('FeedStorage','database-path'):
-        database_path = config_parser.get('FeedStorage','database-path')
+    if config_parser.has_option('Database','path'):
+        database_path = config_parser.get('Database','path')
 
-    feed_storage = FeedStorage(database_path)
-    shell = CommandShell(feed_storage)
-    shell.cmdloop()
+    coffer = Coffer(database_path)
+    coffer.run_command_shell()
+
 
 if __name__ == '__main__':
     main()
