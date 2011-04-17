@@ -23,7 +23,9 @@ class FeedSource(Base):
         self.ad_filters = []
     
     def __repr__(self):
-        return u'FeedSource("%s","%s")' % (self.name,self.url)
+        return u'FeedSource("%s","%s",%s)' % (self.name,
+                                              self.url,
+                                              self.ad_filters)
     
     def get_name(self):
         return self.name
