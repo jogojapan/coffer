@@ -11,16 +11,16 @@ class FeedSource(Base):
     '''
     __tablename__ = 'feed-sources'
 
-    id   = Column(Integer,primary_key=True)
-    name = Column(String)
-    url  = Column(String)
+    _id   = Column(Integer,primary_key=True)
+    _name = Column(String)
+    _url  = Column(String)
     
     def __init__(self,name,url):
-        self.name = name
-        self.url  = url
+        self._name = name
+        self._url  = url
     
     def __repr__(self):
-        return u'FeedSource("%s","%s")' % (self.name,self.url)
+        return u'FeedSource("%s","%s")' % (self._name,self._url)
 
 
 class FeedStorage:
