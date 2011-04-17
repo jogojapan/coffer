@@ -17,25 +17,25 @@ class Item(Base):
     __tablename__ = 'items'
     
     # Primary key
-    _id          = Column(Integer,primary_key=True)
+    id          = Column(Integer,primary_key=True)
     # ID obtained from the feed
-    _original_id = Column(String,index=True)
-    _title       = Column(String)
-    _date        = Column(BigInteger,index=True)
-    _link        = Column(String)
-    _description = Column(String)
+    original_id = Column(String,index=True)
+    title       = Column(String)
+    date        = Column(BigInteger,index=True)
+    link        = Column(String)
+    description = Column(String)
 
     def __init__(self,original_id,title,date,link,description):
-        self._original_id = original_id
-        self._title       = title
-        self._date        = date
-        self._link        = link
-        self._description = description
+        self.original_id = original_id
+        self.title       = title
+        self.date        = date
+        self.link        = link
+        self.description = description
 
     def __repr__(self):
-        return u'Item(%s,"%s",%s)' % (strptime(gmtime(self._date)),
-                                      self._title,
-                                      self._link)
+        return u'Item(%s,"%s",%s)' % (strptime(gmtime(self.date)),
+                                      self.title,
+                                      self.link)
 
 class ItemStorage:
     '''
