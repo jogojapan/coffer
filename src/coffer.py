@@ -56,7 +56,7 @@ class Coffer:
                     if self._item_storage.exists(entry.id):
                         continue
                 if (not enable_ad_filter) or (not exclude_pattern.search(entry.title)):
-                    yield entry
+                    yield (feed.get_id(),entry)
                 
 
 def usage():

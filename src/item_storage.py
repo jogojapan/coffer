@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import Integer,String,BigInteger
 from sqlalchemy import Column
 from time import gmtime,strptime
+from calendar import timegm
 
 Base = declarative_base()
 class Item(Base):
@@ -18,6 +19,8 @@ class Item(Base):
     
     # Primary key
     id          = Column(Integer,primary_key=True)
+    # Reference to the feed this came from
+    feed        = Column(Integer,index=True)
     # ID obtained from the feed
     original_id = Column(String,index=True)
     title       = Column(String(convert_unicode=True))
@@ -25,10 +28,11 @@ class Item(Base):
     link        = Column(String)
     description = Column(String(convert_unicode=True))
 
-    def __init__(self,original_id,title,date,link,description):
+    def __init__(self,feed,original_id,title,date_parsed,link,description):
+        self.feed        = feed
         self.original_id = original_id
         self.title       = title
-        self.date        = date
+        self.date        = timegm(date_parsed)
         self.link        = link
         self.description = description
 
@@ -50,3 +54,15 @@ class ItemStorage:
     def exists(self,original_id):
         c = self._session.query(Item).filter(Item.original_id == original_id).count()
         return (c != 0)
+
+    def add(self,feed,item_id,title,date_parsed,link,description):
+        item = Item(feed=feed,
+                    original_id  = item_id,
+                    title        = title,
+                    date_parsed  = date_parsed,
+                    link         = link,
+                    description  = description)
+        self._session.add(item)
+
+    def flush(self):
+        self._session.commit()

@@ -41,22 +41,45 @@ class CommandShell(Cmd):
         self._end_now = True
 
     def do_current(self,parameters):
-        enable_filter   = False
+        enable_ad_filter   = False
         check_existence = False
         parameters = shlex.split(parameters)
         try:
             opts,args = getopt.getopt(parameters,'fc',[])
             for o,a in opts:
                 if o == '-f':
-                    enable_filter = True
+                    enable_ad_filter = True
                 elif o == '-c':
                     check_existence = True
-            for entry in self._coffer.current_items(enable_filter,check_existence):
+            for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
+                                                    check_existence=check_existence):
                 sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
 
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
 
+    def do_update(self,parameters):
+        counter            = 0
+        enable_ad_filter   = True
+        parameters = shlex.split(parameters)
+        try:
+            opts,args = getopt.getopt(parameters,'',["no-ad-filter"])
+            for o,a in opts:
+                if o == '--no-ad-filter':
+                    enable_ad_filter = False
+            for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
+                                                    check_existence=True):
+                self._coffer._item_storage.add(feed        = feed_id,
+                                               item_id     = entry.id,
+                                               title       = entry.title,
+                                               date_parsed = entry.date_parsed,
+                                               link        = entry.link,
+                                               description = entry.description)
+                counter += 1
+        except getopt.GetoptError,err:
+            sys.stderr.write(str(err) + '\n')
+        self._coffer._item_storage.flush()
+        sys.stdout.write((u'Added %d data records.\n' % counter).encode('utf-8'))
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')

@@ -31,6 +31,8 @@ class FeedSource(Base):
         return self.name
     def get_url(self):
         return self.url
+    def get_id(self):
+        return self.id
     def add_ad_regex(self,regex):
         self.ad_filters.append(regex)
 
