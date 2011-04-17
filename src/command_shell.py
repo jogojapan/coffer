@@ -35,7 +35,7 @@ class CommandShell(Cmd):
         sys.stdout.write('\n')
         self._end_now = True
     
-    def do_list_current_items(self,parameters):
+    def do_current(self,parameters):
         self._coffer.current_items()
 
     def do_EOF(self,parameters):
