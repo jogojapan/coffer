@@ -8,7 +8,7 @@ Created on 2011/04/17
 
 from cmd import Cmd
 import shlex
-#import getopt
+import getopt
 import sys
 
 class CommandShell(Cmd):
@@ -41,7 +41,17 @@ class CommandShell(Cmd):
         self._end_now = True
 
     def do_current(self,parameters):
-        self._coffer.current_items()
+        enable_filter = False
+        parameters = shlex.split(parameters)
+        try:
+            opts,args = getopt.getopt(parameters,'f',[])
+            for o,a in opts:
+                if o == '-f':
+                    enable_filter = True
+            self._coffer.current_items(enable_filter)
+        except getopt.GetoptError,err:
+            sys.stderr.write(str(err) + '\n')
+
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')

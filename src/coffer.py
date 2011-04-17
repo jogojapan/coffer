@@ -7,6 +7,7 @@ Created on 2011/04/17
 import sys
 import getopt
 import os.path
+import re
 from os import mkdir
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -37,15 +38,18 @@ class Coffer:
         shell = CommandShell(self)
         shell.cmdloop()
     
-    def current_items(self):
+    def current_items(self,enable_ad_filter = False):
         '''
         Returns a generator for the list of current items, i.e. the
         current list of fresh items returned by all known feeds.
         '''
         for feed in self._feed_storage.feeds():
+            if enable_ad_filter:
+                exclude_pattern = re.compile(u'|'.join(feed.ad_filters))
             feed_results = feedparser.parse(feed.get_url())
             for entry in feed_results.entries:
-                sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
+                if (not enable_ad_filter) or (not exclude_pattern.search(entry.title)):
+                    sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
                 
 
 def usage():
