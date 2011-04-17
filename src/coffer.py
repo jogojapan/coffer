@@ -14,6 +14,7 @@ from ConfigParser import SafeConfigParser
 from command_shell import CommandShell
 from feed_storage import FeedStorage
 from item_storage import ItemStorage
+import feedparser
 
 class Coffer:
     def __init__(self,database_path):
@@ -35,7 +36,17 @@ class Coffer:
     def run_command_shell(self):
         shell = CommandShell(self)
         shell.cmdloop()
-
+    
+    def current_items(self):
+        '''
+        Returns a generator for the list of current items, i.e. the
+        current list of fresh items returned by all known feeds.
+        '''
+        for feed in self._coffer._feed_storage.feeds():
+            feed_results =feedparser.parse(feed.get_url())
+            for entry in feed_results.entries:
+                sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
+                
 
 def usage():
     sys.stderr.write('Usage: coffer [-c <config-path>]\n')

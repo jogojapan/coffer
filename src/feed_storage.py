@@ -21,6 +21,11 @@ class FeedSource(Base):
     
     def __repr__(self):
         return u'FeedSource("%s","%s")' % (self._name,self._url)
+    
+    def get_name(self):
+        return self._name
+    def get_url(self):
+        return self._url
 
 
 class FeedStorage:
@@ -40,3 +45,7 @@ class FeedStorage:
     def list_feeds(self,out_strm):
         for feed_source in self._session.query(FeedSource).all():
             out_strm.write('%s\n' % str(feed_source))
+
+    def feeds(self):
+        for feed_source in self._session.query(FeedSource).all():
+            yield feed_source
