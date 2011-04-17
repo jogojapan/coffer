@@ -17,6 +17,7 @@ class CommandShell(Cmd):
     '''
     
     def __init__(self,feedstorage):
+        Cmd.__init__(self)
         self._feed_storage = feedstorage        
     
     def interpret_cmd(self,command_tokens):
