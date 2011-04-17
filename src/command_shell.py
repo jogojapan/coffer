@@ -48,7 +48,9 @@ class CommandShell(Cmd):
             for o,a in opts:
                 if o == '-f':
                     enable_filter = True
-            self._coffer.current_items(enable_filter)
+            for entry in self._coffer.current_items(enable_filter):
+                sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
+
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
 

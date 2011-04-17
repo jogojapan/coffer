@@ -18,13 +18,13 @@ from item_storage import ItemStorage
 import feedparser
 
 class Coffer:
-    def __init__(self,database_path):
+    def __init__(self,database_path,database_debug=False):
         # Connect to engine
         dir = os.path.dirname(database_path)
         if not os.path.exists(dir):
             mkdir(dir)
         sys.stderr.write('Connecting to database at "%s"\n' % database_path)
-        self._engine = create_engine('sqlite:///%s' % database_path,echo=True)
+        self._engine = create_engine('sqlite:///%s' % database_path,echo=database_debug)
 
         # Start session
         Session = sessionmaker(bind=self._engine)
@@ -49,7 +49,7 @@ class Coffer:
             feed_results = feedparser.parse(feed.get_url())
             for entry in feed_results.entries:
                 if (not enable_ad_filter) or (not exclude_pattern.search(entry.title)):
-                    sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
+                    yield entry
                 
 
 def usage():
@@ -79,8 +79,12 @@ def main():
     database_path = 'test'
     if config_parser.has_option('Database','path'):
         database_path = config_parser.get('Database','path')
+    database_debug = False
+    if config_parser.has_option('Database','debug'):
+        database_debug = config_parser.getboolean('Database','debug')
+    
 
-    coffer = Coffer(database_path)
+    coffer = Coffer(database_path,database_debug)
     coffer.run_command_shell()
 
 
