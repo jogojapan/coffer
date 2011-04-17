@@ -55,7 +55,7 @@ class FeedStorage:
         
 
 def usage():
-    sys.stderr.write('Usage: feed_update [-c <config-path>]\n')
+    sys.stderr.write('Usage: feed_storage [-c <config-path>]\n')
 
 def main():
     # Determine path to config file
