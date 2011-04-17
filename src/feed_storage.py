@@ -26,6 +26,23 @@ class FeedSource(Base):
         return u'FeedSource("%s","%s")' % (self.name,self.url)
 
 
+class FeedStorage:
+    def __init__(self,database_path):
+        # Connect to engine
+        self._engine = create_engine('sqlite:///%s' % database_path,echo=True)
+
+        # Create tables that don't exits yet
+        FeedSource.metadata.create_all(self._engine)
+
+        # Start session
+        Session = sessionmaker(bind=self._engine)
+        self._session = Session()
+    
+    def add_feed(self,name,url):
+        self._session.add(FeedSource(name,url))
+        self._session.commit()
+        
+
 def usage():
     sys.stderr.write('Usage: feed_update [-c <config-path>]\n')
 
@@ -53,18 +70,10 @@ def main():
     database_path = 'test'
     if config_parser.has_option('FeedStorage','database-path'):
         database_path = config_parser.get('FeedStorage','database-path')
+
+    feed_storage = FeedStorage(database_path)
     
-    # Connect to engine
-    engine = create_engine('sqlite:///%s' % database_path,echo=True)
-
-    # Create tables that don't exits yet
-    FeedSource.metadata.create_all(engine)
-
-    # Start session
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    session.add(FeedSource('Asahi 政治','http://rss.asahi.com/f/asahi_politics'))
-    session.commit()
+    feed_storage.add_feed('Asahi 政治','http://rss.asahi.com/f/asahi_politics')
 
 if __name__ == '__main__':
     main()
