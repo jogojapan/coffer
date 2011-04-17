@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.types import Integer,String
+from sqlalchemy.types import Integer,String,Unicode
 from sqlalchemy import Column
 
 Base = declarative_base()
@@ -11,13 +11,16 @@ class FeedSource(Base):
     '''
     __tablename__ = 'feed-sources'
 
-    id   = Column(Integer,primary_key=True)
-    name = Column(String)
-    url  = Column(String)
+    id         = Column(Integer,primary_key=True)
+    name       = Column(String,convert_unicode=True)
+    url        = Column(String)
+    # A list of regular expressions used to filter titles of advertisements
+    ad_filters = Column(Unicode)
     
     def __init__(self,name,url):
-        self.name = name
-        self.url  = url
+        self.name       = name
+        self.url        = url
+        self.ad_filters = u''
     
     def __repr__(self):
         return u'FeedSource("%s","%s")' % (self.name,self.url)
@@ -26,6 +29,10 @@ class FeedSource(Base):
         return self.name
     def get_url(self):
         return self.url
+    def add_ad_regex(self,regex):
+        current_list = eval(self.ad_filters)
+        current_list.append(regex)
+        self.ad_filters = unicode(current_list)
 
 
 class FeedStorage:
@@ -49,3 +56,13 @@ class FeedStorage:
     def feeds(self):
         for feed_source in self._session.query(FeedSource).all():
             yield feed_source
+
+    def add_regex(self,filter_string,regex,out_stream):
+        counter = 0
+        for feed_source in self._session.query(FeedSource). \
+                filter(FeedSource.name.like(filter_string)):
+            out_stream.write((u'%s\n' % feed_source.name).encode('utf-8'))
+            feed_source.add_ad_regex(regex)
+            counter += 1
+        self._session.commit()
+        out_stream.write('Added filter regex to %d feed definitions.\n' % counter)

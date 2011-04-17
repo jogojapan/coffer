@@ -26,15 +26,20 @@ class CommandShell(Cmd):
 
     def do_add(self,parameters):
         parameters = shlex.split(parameters)
-        if len(parameters) != 2:
-            sys.stderr.write("'add' requires 2 arguments\n")
+        if len(parameters) < 1:
+            sys.stderr.write("'add' requires more arguments\n")
         else:
-            self._coffer._feed_storage.add_feed(parameters[0],parameters[1])
+            if parameters[0] == 'feed' and len(parameters) == 3:
+                self._coffer._feed_storage.add_feed(parameters[1],parameters[2])
+            elif parameters[0] == 'regex' and len(parameters) == 3:
+                self._coffer._feed_storage.add_regex(parameters[1],parameters[2],sys.stderr)
+            else:
+                sys.stderr.write('Wrong number of type of arguments in call to "add".\n')
 
     def do_quit(self,parameters):
         sys.stdout.write('\n')
         self._end_now = True
-    
+
     def do_current(self,parameters):
         self._coffer.current_items()
 
