@@ -18,7 +18,10 @@ from item_storage import ItemStorage
 import feedparser
 
 class Coffer:
-    def __init__(self,database_path,database_debug=False):
+    def __init__(self,
+                 external_processes,
+                 database_path,
+                 database_debug = False):
         # Connect to engine
         dir = os.path.dirname(database_path)
         if not os.path.exists(dir):
@@ -33,7 +36,15 @@ class Coffer:
         self._feed_storage = FeedStorage(self._engine,self._session)
         # Initialize item storage
         self._item_storage = ItemStorage(self._engine,self._session)
+        # A list of subprocess.Popen processes that will be maintained
+        # by the Coffer object.
+        self._external_processes = external_processes
 
+    def finish(self):
+        sys.stderr.writeln('Waiting for sub-processes to finish')
+        for process in self._external_processes:
+            process.wait()
+    
     def run_command_shell(self):
         shell = CommandShell(self)
         shell.cmdloop()
@@ -93,7 +104,7 @@ def main():
 
     coffer = Coffer(database_path,database_debug)
     coffer.run_command_shell()
-
+    coffer.finish()
 
 if __name__ == '__main__':
     main()
