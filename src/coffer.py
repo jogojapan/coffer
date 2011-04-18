@@ -41,10 +41,27 @@ class Coffer:
         self._external_processes = external_processes
 
     def finish(self):
+        '''
+        Waits for all external processes started by coffer to finish.
+        '''
         sys.stderr.writeln('Waiting for sub-processes to finish')
         for process in self._external_processes:
             process.wait()
-    
+
+    def check_processes(self):
+        '''
+        Checks if some of the external processes have finished and
+        removes them from the external-process list if they have.
+        '''
+        end_i = len(self._external_processes)
+        i     = 0
+        while i < end_i:
+            if self._external_processes[i].poll() is not None:
+                del self._external_processes[i]
+                end_i -= 1
+            else:
+                i += 1
+
     def run_command_shell(self):
         shell = CommandShell(self)
         shell.cmdloop()

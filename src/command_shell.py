@@ -21,6 +21,9 @@ class CommandShell(Cmd):
         self._coffer  = coffer
         self._end_now = False        
 
+    def postcmd(self,stop,line):
+        self._coffer.check_processes()
+
     def do_list(self,parameters):
         self._coffer._feed_storage.list_feeds(sys.stdout)
 
