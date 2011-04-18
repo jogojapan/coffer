@@ -53,7 +53,7 @@ class FeedStorage:
     
     def list_feeds(self,out_strm):
         for feed_source in self._session.query(FeedSource).all():
-            out_strm.write('%s\n' % str(feed_source))
+            out_strm.write((u'%s\n' % unicode(feed_source)).encode('utf-8'))
 
     def feeds(self):
         for feed_source in self._session.query(FeedSource).all():
