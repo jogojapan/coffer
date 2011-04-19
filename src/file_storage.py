@@ -11,6 +11,8 @@ from os import listdir
 import re
 import tarfile
 import subprocess
+import time
+from os_specific.userinfo import user_info
 
 FILE_PRE      = u'block_'
 FILE_EXT      = u'.tar'
@@ -27,7 +29,8 @@ DEFAULT_MAX_BLOCK_SIZE = 10,485,760
 class Bucket:
     '''
     Holds all information related to a bucket, i.e. a directory
-    of the file store.
+    of the file store. A bucket holds all files belonging to one
+    particular source feed.
     '''
     
     def __init__(self,
@@ -40,6 +43,7 @@ class Bucket:
         if not os.path.isdir(path):
             raise "Invalid bucket path '%s'" % path
         self._current_fileno = 0
+        self._current_size   = 0
         self._path           = path
         self._current_size   = 0
         self._max_block_size = max_block_size
@@ -59,12 +63,17 @@ class Bucket:
         if exists:
             # If the current output file exists, we need to determine its size
             abspath = self.generate_filename(self._current_fileno,False)
-            if os.stat(abspath).st_size >= self._max_block_size:
+            self._current_size = os.stat(abspath).st_size
+            if self._current_size >= self._max_block_size:
                 self.compress(abspath)
                 self._current_fileno += 1
                 exists = False
+                self._current_size = 0
 
     def compress(self,abspath):
+        '''
+        Spawn an external process that compresses a block.
+        '''
         process = subprocess.Popen([self._bzip2_path,abspath])
         self._external_processes.append(process)
 
@@ -79,16 +88,43 @@ class Bucket:
             filename += COMPR_EXT
         return filename
 
-    def store(self,unicode_text):
+    def store(self,text_id,unicode_text):
         '''
         Store a piece of text in the current block. Create a new block if necessary.
         '''
         filename = self.generate_filename(self._current_fileno,False)
-        if os.path.exists(filename):
-            channel = tarfile.open(name=filename,mode='a')
-        else:
-            channel = tarfile.open(name=filename,mode='w')
+        channel = tarfile.open(name=filename,mode='a')
+        encoded_text = unicode_text.encode('utf-8')
+        tarinfo = tarfile.TarInfo.frombuf(encoded_text)
+        tarinfo.name  = text_id
+        tarinfo.mtime = time.time()
+        (tarinfo.uid,tarinfo.gid) = user_info()
+        channel.addfile(tarinfo)
+        channel.close()
+        self._current_size += len(encoded_text)
 
+    def store_all(self,text_objs):
+        '''
+        Store a list of text objects (each an id and a unicode text) in the
+        current block. Create a new block if necessary.
+        '''
+        ui = user_info()
+        filename = self.generate_filename(self._current_fileno,False)
+        channel = tarfile.open(name=filename,mode='a')
+        for (text_id,unicode_text) in text_objs:
+            encoded_text = unicode_text.encode('utf-8')
+            tarinfo = tarfile.TarInfo.frombuf(unicode_text)
+            tarinfo.name  = text_id
+            tarinfo.mtime = time.time()
+            (tarinfo.uid,tarinfo.gid) = ui
+            channel.addfile(tarinfo)
+            self._current_size += len(encoded_text)
+            if self._current_size >= self._max_block_size:
+                channel.close()
+                self._current_fileno += 1
+                filename = self.generate_filename(self._current_fileno,False)
+                channel = tarfile.open(name=filename,mode='w')
+        channel.close()
 
 class FileStorage(object):
     '''
