@@ -19,7 +19,8 @@ class CommandShell(Cmd):
     def __init__(self,coffer):
         Cmd.__init__(self)
         self._coffer  = coffer
-        self._end_now = False        
+        self._end_now = False
+        self.prompt   = 'coffer> '
 
     def postcmd(self,stop,line):
         self._coffer.check_processes()
