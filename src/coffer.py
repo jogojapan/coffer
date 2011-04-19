@@ -12,16 +12,21 @@ from os import mkdir
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from ConfigParser import SafeConfigParser
+from util.config_parsing import get_from_config_parser
+from util.config_parsing import get_boolean_from_config_parser
+from util.config_parsing import get_int_from_config_parser
 from command_shell import CommandShell
 from feed_storage import FeedStorage
 from item_storage import ItemStorage
+from file_storage import FileStorage
+import file_storage
 import feedparser
 
 class Coffer:
-    def __init__(self,
-                 database_path,
-                 database_debug = False):
+    def __init__(self,config_parser):
         # Connect to engine
+        database_path  = get_from_config_parser(config_parser,'Database','path','database')
+        database_debug = get_boolean_from_config_parser(config_parser,'Database','debug',False)
         dir = os.path.dirname(database_path)
         if not os.path.exists(dir):
             mkdir(dir)
@@ -38,6 +43,13 @@ class Coffer:
         # A list of subprocess.Popen processes that will be maintained
         # by the Coffer object.
         self._external_processes = []
+        # File storage (data dump)
+        file_storage_path = get_from_config_parser(config_parser,'FileStorage','path','datadump')
+        max_block_size    = get_int_from_config_parser(config_parser,'FileStorage','max-block-size',
+                                                       file_storage.DEFAULT_MAX_BLOCK_SIZE)
+        bzip2_path = get_from_config_parser(config_parser,'FileStorage','bzip2-path','/usr/bin/bzip2')
+        self._file_storage = FileStorage(self._external_processes,file_storage_path,
+                                         max_block_size,bzip2_path)
 
     def finish(self):
         '''
