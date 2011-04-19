@@ -24,6 +24,7 @@ class CommandShell(Cmd):
 
     def postcmd(self,stop,line):
         self._coffer.check_processes()
+        return self._end_now
 
     def do_list(self,parameters):
         self._coffer._feed_storage.list_feeds(sys.stdout)
@@ -88,6 +89,3 @@ class CommandShell(Cmd):
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
         self._end_now = True
-
-    def postcmd(self,stop,line):
-        return self._end_now
