@@ -134,8 +134,48 @@ class FileStorage(object):
     another one is added.
     '''
 
-    def __init__(self):
-        '''
-        Constructor
-        '''
+    def __init__(self,
+                 external_processes,
+                 path,
+                 max_block_size = DEFAULT_MAX_BLOCK_SIZE,
+                 bzip2_path     = '/usr/bin/bzip2'):
+        self._external_processes = external_processes
+        self._path               = path
+        self._max_block_size     = max_block_size
+        self._bzip2_path         = bzip2_path
         
+        # Create a directory of buckets
+        self._directory = {}
+        if not os.path.exists(path):
+            os.mkdir(path)
+        else:
+            # If the main path refers to an existing file directory,
+            # all its subdirectories are configured as existing buckets.
+            if not os.path.isdir(path):
+                raise "'%s' is a file but should be a directory." % path
+            for entry in os.listdir(path):
+                abspath = os.path.join(path,entry)
+                if os.path.isdir(abspath):
+                    self._directory[entry] = Bucket(external_processes,
+                                                    abspath,
+                                                    max_block_size,
+                                                    bzip2_path)
+
+    def store_all(self,text_objs_dict):
+        '''
+        @param text_objs_dict: A hash of source-feed -> [(text_id,unicode_text),..]
+            mappings.
+            The source-feed will be used as a subdirectory name that should be
+            specific to the feed the text comes from. The text_id must
+            correspond to the unique ID of the text (usually comes as 'id'
+            meta field from the RSS/Atom item. The unicode_text is the
+            text downloaded from the 'link' the comes along with the RSS/Atom
+            item. It is generally formatted in HTML.
+        '''
+        for source_feed,text_objs in text_objs_dict:
+            if source_feed not in self._directory:
+                self._directory[source_feed] = Bucket(self._external_processes,
+                                                      os.path.join(self._path,source_feed),
+                                                      self._max_block_size,
+                                                      self._bzip2_path)
+            self._directory[source_feed].store_all(text_objs)
