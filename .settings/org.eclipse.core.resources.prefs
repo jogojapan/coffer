@@ -1,4 +1,7 @@
-#Sun Apr 17 18:58:06 JST 2011
+#Tue Apr 19 12:01:01 JST 2011
 eclipse.preferences.version=1
 encoding//src/command_shell.py=utf-8
 encoding//src/feed_storage.py=utf-8
+encoding//src/file_storage.py=utf-8
+encoding//src/os_specific/__init__.py=utf-8
+encoding//src/os_specific/userinfo.py=utf-8
