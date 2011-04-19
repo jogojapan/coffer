@@ -19,7 +19,6 @@ import feedparser
 
 class Coffer:
     def __init__(self,
-                 external_processes,
                  database_path,
                  database_debug = False):
         # Connect to engine
@@ -38,15 +37,16 @@ class Coffer:
         self._item_storage = ItemStorage(self._engine,self._session)
         # A list of subprocess.Popen processes that will be maintained
         # by the Coffer object.
-        self._external_processes = external_processes
+        self._external_processes = []
 
     def finish(self):
         '''
         Waits for all external processes started by coffer to finish.
         '''
-        sys.stderr.writeln('Waiting for sub-processes to finish')
+        sys.stderr.write('Waiting for sub-processes to finish..\n')
         for process in self._external_processes:
             process.wait()
+        sys.stderr.write('  ..finished.\n\n')
 
     def check_processes(self):
         '''
