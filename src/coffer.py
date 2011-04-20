@@ -23,6 +23,7 @@ from item_storage import ItemStorage
 from file_storage import FileStorage
 import file_storage
 import feedparser
+from fetcher import Fetcher
 
 class Coffer:
     def __init__(self,config_parser):
@@ -52,6 +53,8 @@ class Coffer:
         bzip2_path = get_from_config_parser(config_parser,'FileStorage','bzip2-path','/usr/bin/bzip2')
         self._file_storage = FileStorage(self._external_processes,file_storage_path,
                                          max_block_size,bzip2_path)
+        # Content fetcher configuration
+        self._fetcher = Fetcher(config_parser)
 
     def finish(self):
         '''
@@ -99,7 +102,14 @@ class Coffer:
                         continue
                 if (not enable_ad_filter) or (not exclude_pattern.search(entry.title)):
                     yield (feed.get_id(),entry)
-                
+
+    def fetch_and_store(self,targets):
+        '''
+        Download target URLs and store them in the file storage.
+        @param targets: A list of (feed-id,URL) pairs.
+        '''
+        text_objs_dict = self._fetcher.fetch(targets)
+        self._file_storage.store_all(text_objs_dict)
 
 def usage():
     sys.stderr.write('Usage: coffer [-c <config-path>]\n')

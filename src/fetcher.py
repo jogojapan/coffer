@@ -21,7 +21,6 @@ class OneSiteFetcher(Thread):
     def __init__(self,opener,waiting_time,timeout):
         '''
         Constructor.
-        @param url_list: A list of (feed-source,URL) pairs.
         '''
         Thread.__init__()
         self._url_list     = []
@@ -30,18 +29,18 @@ class OneSiteFetcher(Thread):
         self._opener       = opener
         self._timeout      = timeout
     
-    def append_url(self,feed_source,url):
+    def append_url(self,feed_id,url,metainfo):
         '''
-        Appends a (feed-source,URL) pair to the target list. This MUST be done
+        Appends a (feed-id,URL,metainfo) pair to the target list. This MUST be done
         before the thread is started.
         '''
-        self._url_list.append((feed_source,url))
+        self._url_list.append((feed_id,url,metainfo))
     
     def run(self):
-        for (feed,url) in self._url_list:
+        for (feed_id,url,metainfo) in self._url_list:
             stream = self._opener.open(url,timeout=self._timeout)
             if stream:
-                self._results.append((feed,url,unicode(stream.read(),'utf-8')))
+                self._results.append((feed_id,url,unicode(stream.read(),'utf-8'),metainfo))
             sleep(self._waiting_time)
 
 class Fetcher(object):
@@ -66,7 +65,10 @@ class Fetcher(object):
     def fetch(self,targets):
         '''
         Fetch content from the target URLs.
-        @param targets: a list of (feed-source,URL) pairs. The feed-source
+        @param targets: a list of (feed_id-id,URL,metainfo) pairs. The metainfo
+                   object may contain anything; it will be re-attached to the
+                   results for this URL. The feed_id-id is used to determine the
+                   fetcher thread the URL will be assigned to.
         '''
         # Create thread pool
         thread_pool = [OneSiteFetcher(self._opener,self._waiting_time,self._timeout) \
@@ -74,20 +76,23 @@ class Fetcher(object):
         # Assign feeds/URLs to threads
         current_thread = 0
         assignments    = {}
-        for (feed,url) in targets:
-            if feed not in assignments:
-                assignments[feed] = thread_pool[current_thread]
+        for (feed_id,url,metainfo) in targets:
+            if feed_id not in assignments:
+                assignments[feed_id] = thread_pool[current_thread]
                 current_thread += 1
                 if current_thread >= self._max_threads:
                     current_thread = 0
-            assignments[feed].append_url(feed,url)
+            assignments[feed_id].append_url(feed_id,url,metainfo)
         # Run the threads
         for fetcher in thread_pool:
             fetcher.start()
         # Wait for them to finish
         for fetcher in thread_pool:
             fetcher.join()
-        results = []
+        results = {}
         for fetcher in thread_pool:
-            results.extend(fetcher._results)
+            for (feed_id,url,contents,metainfo) in fetcher._results:
+                if feed_id not in results:
+                    results[feed_id] = []
+                results[feed_id].append(metainfo,contents)
         return results

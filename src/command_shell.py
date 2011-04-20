@@ -72,6 +72,8 @@ class CommandShell(Cmd):
             for o,_ in opts:
                 if o == '--no-ad-filter':
                     enable_ad_filter = False
+            # Store meta information
+            fetch_targets = []
             for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
                                                     check_existence=True):
                 self._coffer._item_storage.add(feed        = feed_id,
@@ -80,7 +82,9 @@ class CommandShell(Cmd):
                                                date_parsed = entry.date_parsed,
                                                link        = entry.link,
                                                description = entry.description)
+                fetch_targets.append((str(feed_id),entry.link))
                 counter += 1
+            # Download contents
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
         self._coffer._item_storage.flush()
