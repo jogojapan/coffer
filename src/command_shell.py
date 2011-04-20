@@ -50,13 +50,13 @@ class CommandShell(Cmd):
         check_existence = False
         parameters = shlex.split(parameters)
         try:
-            opts,args = getopt.getopt(parameters,'fc',[])
-            for o,a in opts:
+            opts,_ = getopt.getopt(parameters,'fc',[])
+            for o,_ in opts:
                 if o == '-f':
                     enable_ad_filter = True
                 elif o == '-c':
                     check_existence = True
-            for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
+            for (_,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
                                                     check_existence=check_existence):
                 sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
 
@@ -68,8 +68,8 @@ class CommandShell(Cmd):
         enable_ad_filter   = True
         parameters = shlex.split(parameters)
         try:
-            opts,args = getopt.getopt(parameters,'',["no-ad-filter"])
-            for o,a in opts:
+            opts,_ = getopt.getopt(parameters,'',["no-ad-filter"])
+            for o,_ in opts:
                 if o == '--no-ad-filter':
                     enable_ad_filter = False
             for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,

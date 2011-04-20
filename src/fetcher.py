@@ -6,7 +6,7 @@ Created on 2011/04/19
 @author: gollerjo
 '''
 
-from util.config_parsing import *
+from util.config_parsing import get_int_from_config_parser
 from threading import Thread
 from urllib2 import build_opener
 from time import sleep
@@ -43,7 +43,6 @@ class OneSiteFetcher(Thread):
             if stream:
                 self._results.append((feed,url,unicode(stream.read(),'utf-8')))
             sleep(self._waiting_time)
-        
 
 class Fetcher(object):
     '''
@@ -71,7 +70,7 @@ class Fetcher(object):
         '''
         # Create thread pool
         thread_pool = [OneSiteFetcher(self._opener,self._waiting_time,self._timeout) \
-                       for x in range(self._max_threads)]
+                       for _ in range(self._max_threads)]
         # Assign feeds/URLs to threads
         current_thread = 0
         assignments    = {}
