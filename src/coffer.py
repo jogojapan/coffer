@@ -122,18 +122,13 @@ def main():
         else:
             usage()
             sys.exit(1)
+
+    # Parse config file
     config_parser = SafeConfigParser()
     config_parser.read(config_path)
 
-    database_path = 'test'
-    if config_parser.has_option('Database','path'):
-        database_path = config_parser.get('Database','path')
-    database_debug = False
-    if config_parser.has_option('Database','debug'):
-        database_debug = config_parser.getboolean('Database','debug')
-    
-
-    coffer = Coffer(database_path,database_debug)
+    # Set up and run coffer
+    coffer = Coffer(config_parser)
     coffer.run_command_shell()
     coffer.finish()
 
