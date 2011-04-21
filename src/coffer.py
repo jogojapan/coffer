@@ -83,6 +83,16 @@ class Coffer:
         shell = CommandShell(self)
         shell.cmdloop()
 
+    def get_feed_info(self,url):
+        '''
+        Obtain information on an RSS feed, given its URL. The
+        information will be obtained directly from the URL,
+        not from our database. This works for feeds regardless
+        of whether they are stored in our database.
+        '''
+        feed_results = feedparser.parse(url)
+        return feed_results.feed.title
+
     def current_items(self, enable_ad_filter = False, check_existence = False):
         '''
         Returns a generator for the list of current items, i.e. the

@@ -34,12 +34,25 @@ class CommandShell(Cmd):
         if len(parameters) < 1:
             sys.stderr.write("'add' requires more arguments\n")
         else:
-            if parameters[0] == 'feed' and len(parameters) == 3:
-                self._coffer._feed_storage.add_feed(parameters[1],parameters[2])
+            if parameters[0] == 'feed' and len(parameters) == 2:
+                feed_title = self._coffer.get_feed_info(parameters[1])
+                self._coffer._feed_storage.add_feed(feed_title,
+                                                    parameters[1])
+                sys.stdout.write((u'Added "%s"\n' % feed_title).encode('utf-8','ignore'))
+            elif parameters[0] == 'feed' and len(parameters) == 3:
+                self._coffer._feed_storage.add_feed(parameters[2],parameters[1])
             elif parameters[0] == 'regex' and len(parameters) == 3:
                 self._coffer._feed_storage.add_regex(parameters[1],parameters[2],sys.stderr)
             else:
                 sys.stderr.write('Wrong number of type of arguments in call to "add".\n')
+
+    def do_info(self,parameters):
+        parameters = shlex.split(parameters)
+        if len(parameters) < 1:
+            sys.stderr.write("'info' requires a URL\n")
+        else:
+            feed_info = self._coffer.get_feed_info(parameters[0])
+            sys.stdout.write((u'%s\n' % feed_info).encode('utf-8','ignore'))
 
     def do_quit(self,parameters):
         sys.stdout.write('\n')
