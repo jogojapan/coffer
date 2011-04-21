@@ -26,6 +26,12 @@ COMPR_PATTERN = re.compile(re.escape(COMPR_EXT) + u'$')
 # will be started.
 DEFAULT_MAX_BLOCK_SIZE = 10,485,760
 
+class FileStorageException(Exception):
+    def __init__(self,message):
+        self._message = message
+    def __repr__(self):
+        return self._message
+
 class Bucket:
     '''
     Holds all information related to a bucket, i.e. a directory
@@ -41,7 +47,7 @@ class Bucket:
         self._external_processes = external_processes
         self._bzip2_path         = bzip2_path
         if not os.path.isdir(path):
-            raise "Invalid bucket path '%s'" % path
+            raise FileStorageException("Invalid bucket path '%s'" % path)
         self._current_fileno = 0
         self._current_size   = 0
         self._path           = path
@@ -152,7 +158,7 @@ class FileStorage(object):
             # If the main path refers to an existing file directory,
             # all its subdirectories are configured as existing buckets.
             if not os.path.isdir(path):
-                raise "'%s' is a file but should be a directory." % path
+                raise FileStorageException("'%s' is a file but should be a directory." % path)
             for entry in os.listdir(path):
                 abspath = os.path.join(path,entry)
                 if os.path.isdir(abspath):
@@ -172,7 +178,7 @@ class FileStorage(object):
             text downloaded from the 'link' the comes along with the RSS/Atom
             item. It is generally formatted in HTML.
         '''
-        for source_feed,text_objs in text_objs_dict:
+        for source_feed,text_objs in text_objs_dict.iteritems():
             if source_feed not in self._directory:
                 self._directory[source_feed] = Bucket(self._external_processes,
                                                       os.path.join(self._path,source_feed),
