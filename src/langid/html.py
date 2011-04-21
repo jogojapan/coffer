@@ -18,7 +18,7 @@ class HtmlLangid(HTMLParser):
         HTMLParser.__init__(self)
         self._encoding_pattern = re.compile('charset\s*=\s*([^\s\x22\x27]+)')
         self._script_pattern   = re.compile('(?:<script[^>]*/\s*>|<script[^>]*>.*?</script>)',
-                                            re.IGNORECASE)
+                                            re.IGNORECASE|re.S)
         self.reset()
 
     def reset(self):
