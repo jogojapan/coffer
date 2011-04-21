@@ -111,10 +111,10 @@ class Bucket:
         for (text_id,unicode_text) in text_objs:
             encoded_text = unicode_text.encode('utf-8')
             tarinfo = tarfile.TarInfo(text_id)
-            tarinfo.size = len(unicode_text)
+            tarinfo.size = len(encoded_text)
             tarinfo.mtime = time.time()
             (tarinfo.uid,tarinfo.gid) = ui
-            channel.addfile(tarinfo,StringIO(unicode_text))
+            channel.addfile(tarinfo,StringIO(encoded_text))
             self._current_size += len(encoded_text)
             if self._current_size >= self._max_block_size:
                 channel.close()
