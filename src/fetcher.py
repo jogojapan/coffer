@@ -10,6 +10,8 @@ from util.config_parsing import get_int_from_config_parser
 from threading import Thread
 from urllib2 import build_opener
 from time import sleep
+from langid.html import HtmlLangid
+from langid import get_decoder
 
 class OneSiteFetcher(Thread):
     '''
@@ -28,6 +30,7 @@ class OneSiteFetcher(Thread):
         self._results      = []
         self._opener       = opener
         self._timeout      = timeout
+        self._langid       = HtmlLangid()
     
     def append_url(self,feed_id,url,metainfo):
         '''
@@ -40,7 +43,12 @@ class OneSiteFetcher(Thread):
         for (feed_id,url,metainfo) in self._url_list:
             stream = self._opener.open(url,timeout=self._timeout)
             if stream:
-                self._results.append((feed_id,url,unicode(stream.read(),'utf-8'),metainfo))
+                contents = stream.read()
+                stream.close()
+                self._langid.reset()
+                self._langid.feed(contents)
+                decoder = get_decoder(self._langid._result_encoding,'utf-8')
+                self._results.append((feed_id,url,decoder(contents,'ignore'),metainfo))
             sleep(self._waiting_time)
 
 class Fetcher(object):
