@@ -17,12 +17,18 @@ class HtmlLangid(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self._encoding_pattern = re.compile('charset\s*=\s*([^\s\x22\x27]+)')
+        self._script_pattern   = re.compile('(?:<script[^>]*/\s*>|<script[^>]*>.*?</script>)',
+                                            re.IGNORECASE)
         self.reset()
 
     def reset(self):
         HTMLParser.reset(self)
         self._result_language = ''
         self._result_encoding = ''
+
+    def feed(self,contents):
+        contents = self._script_pattern.sub('',contents)
+        HTMLParser.feed(self,contents)
 
     def handle_starttag(self,tag,attrs):
         if tag == 'meta':
