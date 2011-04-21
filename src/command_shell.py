@@ -10,6 +10,7 @@ from cmd import Cmd
 import shlex
 import getopt
 import sys
+from file_storage import FileStorageException
 
 class CommandShell(Cmd):
     '''
@@ -60,7 +61,8 @@ class CommandShell(Cmd):
 
     def do_current(self,parameters):
         enable_ad_filter   = False
-        check_existence = False
+        check_existence    = False
+        debug_enabled      = False
         parameters = shlex.split(parameters)
         try:
             opts,_ = getopt.getopt(parameters,'fc',[])
@@ -69,9 +71,12 @@ class CommandShell(Cmd):
                     enable_ad_filter = True
                 elif o == '-c':
                     check_existence = True
-            for (_,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
-                                                    check_existence=check_existence):
-                sys.stdout.write((u'%s\n' % entry.title).encode('utf-8'))
+                elif o == '-d':
+                    debug_enabled = True
+            for (_,entryid,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
+                                                                check_existence=check_existence,
+                                                                debug_enabled=debug_enabled):
+                sys.stdout.write((u'[%s] %s\n' % (entryid,entry.title)).encode('utf-8'))
 
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
@@ -87,18 +92,22 @@ class CommandShell(Cmd):
                     enable_ad_filter = False
             # Store meta information
             fetch_targets = []
-            for (feed_id,entry) in self._coffer.current_items(enable_ad_filter=enable_ad_filter,
+            for (feed_id,entryid,entry) in \
+                         self._coffer.current_items(enable_ad_filter=enable_ad_filter,
                                                     check_existence=True):
                 self._coffer._item_storage.add(feed        = feed_id,
-                                               item_id     = entry.id,
+                                               item_id     = entryid,
                                                title       = entry.title,
                                                date_parsed = entry.date_parsed,
                                                link        = entry.link,
                                                description = entry.description)
-                fetch_targets.append((str(feed_id),entry.link,entry.id))
+                fetch_targets.append((str(feed_id),entry.link,entryid))
                 counter += 1
             # Download contents
-            self._coffer.fetch_and_store(fetch_targets)
+            try:
+                self._coffer.fetch_and_store(fetch_targets)
+            except FileStorageException,err:
+                sys.stderr.write((u'Error: %s\n' % repr(err)).encode('utf-8'))
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
         self._coffer._item_storage.flush()
