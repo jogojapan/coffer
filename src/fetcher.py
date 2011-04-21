@@ -8,7 +8,7 @@ Created on 2011/04/19
 
 from util.config_parsing import get_int_from_config_parser
 from threading import Thread
-from urllib2 import build_opener
+from urllib2 import build_opener, HTTPError
 from time import sleep
 from langid.html import HtmlLangid
 from langid import get_decoder
@@ -42,20 +42,24 @@ class OneSiteFetcher(Thread):
     
     def run(self):
         for (feed_id,url,metainfo) in self._url_list:
-            stream = self._opener.open(url,timeout=self._timeout)
-            if stream:
-                contents = stream.read()
-                stream.close()
-                self._langid.reset()
-                self._langid.feed(contents)
-                decoder = get_decoder(self._langid._result_encoding,'utf-8')
-                (decoded_text,decoded_input_len) = decoder(contents,'ignore')
-                if decoded_input_len != len(contents):
-                    sys.stderr.write("Warning: Downloaded text was not decoded " + \
-                                     "to Unicode completely. " + \
-                                     ("Only %d out of %d " % (decoded_input_len,len(contents))) + \
-                                     "bytes were decoded.\n")
-                self._results.append((feed_id,url,decoded_text,metainfo))
+            try:
+                stream = self._opener.open(url,timeout=self._timeout)
+                if stream:
+                    contents = stream.read()
+                    stream.close()
+                    self._langid.reset()
+                    self._langid.feed(contents)
+                    decoder = get_decoder(self._langid._result_encoding,'utf-8')
+                    (decoded_text,decoded_input_len) = decoder(contents,'ignore')
+                    if decoded_input_len != len(contents):
+                        sys.stderr.write("Warning: Downloaded text was not decoded " + \
+                                         "to Unicode completely. " + \
+                                         ("Only %d out of %d " % (decoded_input_len,len(contents))) + \
+                                         "bytes were decoded.\n")
+                    self._results.append((feed_id,url,decoded_text,metainfo))
+            except HTTPError,err:
+                sys.stderr.write((u'Could not download "%s": %s\n' \
+                                  % (url,repr(err))).encode('utf-8'))
             sleep(self._waiting_time)
 
 class Fetcher(object):
