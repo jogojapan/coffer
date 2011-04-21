@@ -104,7 +104,7 @@ class Bucket:
         '''
         ui = user_info()
         filename = self.generate_filename(self._current_fileno,False)
-        if os.path.exists(filename):
+        if os.path.exists(filename) and os.stat(filename).st_size != 0:
             channel = tarfile.open(name=filename,mode='a')
         else:
             channel = tarfile.open(name=filename,mode='w')
