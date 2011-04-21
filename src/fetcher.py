@@ -12,6 +12,7 @@ from urllib2 import build_opener
 from time import sleep
 from langid.html import HtmlLangid
 from langid import get_decoder
+import sys
 
 class OneSiteFetcher(Thread):
     '''
@@ -48,7 +49,13 @@ class OneSiteFetcher(Thread):
                 self._langid.reset()
                 self._langid.feed(contents)
                 decoder = get_decoder(self._langid._result_encoding,'utf-8')
-                self._results.append((feed_id,url,decoder(contents,'ignore'),metainfo))
+                (decoded_text,decoded_input_len) = decoder(contents,'ignore')
+                if decoded_input_len != len(contents):
+                    sys.stderr.write("Warning: Downloaded text was not decoded " + \
+                                     "to Unicode completely. " + \
+                                     ("Only %d out of %d " % (decoded_input_len,len(contents))) + \
+                                     "bytes were decoded.\n")
+                self._results.append((feed_id,url,decoded_text,metainfo))
             sleep(self._waiting_time)
 
 class Fetcher(object):
