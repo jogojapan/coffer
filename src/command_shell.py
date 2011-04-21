@@ -82,7 +82,7 @@ class CommandShell(Cmd):
                                                date_parsed = entry.date_parsed,
                                                link        = entry.link,
                                                description = entry.description)
-                fetch_targets.append((str(feed_id),entry.link))
+                fetch_targets.append((str(feed_id),entry.link,entry.id))
                 counter += 1
             # Download contents
             self._coffer.fetch_and_store(fetch_targets)

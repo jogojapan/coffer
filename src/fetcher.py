@@ -22,7 +22,7 @@ class OneSiteFetcher(Thread):
         '''
         Constructor.
         '''
-        Thread.__init__()
+        Thread.__init__(self)
         self._url_list     = []
         self._waiting_time = waiting_time
         self._results      = []
