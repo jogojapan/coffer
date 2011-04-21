@@ -27,6 +27,9 @@ COMPR_PATTERN = re.compile(re.escape(COMPR_EXT) + u'$')
 # will be started.
 DEFAULT_MAX_BLOCK_SIZE = 10,485,760
 
+def escape_path(path):
+    return path.replace('/','_')
+
 class FileStorageException(Exception):
     def __init__(self,message):
         self._message = message
@@ -110,7 +113,7 @@ class Bucket:
             channel = tarfile.open(name=filename,mode='w')
         for (text_id,unicode_text) in text_objs:
             encoded_text = unicode_text.encode('utf-8')
-            tarinfo = tarfile.TarInfo(text_id)
+            tarinfo = tarfile.TarInfo(escape_path(text_id))
             tarinfo.size = len(encoded_text)
             tarinfo.mtime = time.time()
             (tarinfo.uid,tarinfo.gid) = ui
