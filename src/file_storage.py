@@ -13,6 +13,7 @@ import tarfile
 import subprocess
 import time
 from os_specific.userinfo import user_info
+from StringIO import StringIO
 
 FILE_PRE      = u'block_'
 FILE_EXT      = u'.tar'
@@ -96,21 +97,6 @@ class Bucket:
             filename += COMPR_EXT
         return filename
 
-    def store(self,text_id,unicode_text):
-        '''
-        Store a piece of text in the current block. Create a new block if necessary.
-        '''
-        filename = self.generate_filename(self._current_fileno,False)
-        channel = tarfile.open(name=filename,mode='a')
-        encoded_text = unicode_text.encode('utf-8')
-        tarinfo = tarfile.TarInfo.frombuf(encoded_text)
-        tarinfo.name  = text_id
-        tarinfo.mtime = time.time()
-        (tarinfo.uid,tarinfo.gid) = user_info()
-        channel.addfile(tarinfo)
-        channel.close()
-        self._current_size += len(encoded_text)
-
     def store_all(self,text_objs):
         '''
         Store a list of text objects (each an id and a unicode text) in the
@@ -118,14 +104,17 @@ class Bucket:
         '''
         ui = user_info()
         filename = self.generate_filename(self._current_fileno,False)
-        channel = tarfile.open(name=filename,mode='a')
+        if os.path.exists(filename):
+            channel = tarfile.open(name=filename,mode='a')
+        else:
+            channel = tarfile.open(name=filename,mode='w')
         for (text_id,unicode_text) in text_objs:
             encoded_text = unicode_text.encode('utf-8')
-            tarinfo = tarfile.TarInfo.frombuf(unicode_text)
-            tarinfo.name  = text_id
+            tarinfo = tarfile.TarInfo(text_id)
+            tarinfo.size = len(unicode_text)
             tarinfo.mtime = time.time()
             (tarinfo.uid,tarinfo.gid) = ui
-            channel.addfile(tarinfo)
+            channel.addfile(tarinfo,StringIO(unicode_text))
             self._current_size += len(encoded_text)
             if self._current_size >= self._max_block_size:
                 channel.close()
