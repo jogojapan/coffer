@@ -102,5 +102,5 @@ class Fetcher(object):
             for (feed_id,url,contents,metainfo) in fetcher._results:
                 if feed_id not in results:
                     results[feed_id] = []
-                results[feed_id].append(metainfo,contents)
+                results[feed_id].append((metainfo,contents))
         return results
