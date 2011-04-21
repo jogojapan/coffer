@@ -16,17 +16,17 @@ class FeedSource(Base):
     url        = Column(String)
     # A list of regular expressions used to filter titles of advertisements
     ad_filters = Column(PickleType)
-    
+
     def __init__(self,name,url):
         self.name       = name
         self.url        = url
         self.ad_filters = []
-    
+
     def __repr__(self):
         return u'FeedSource("%s","%s",%s)' % (self.name,
                                               self.url,
                                               self.ad_filters)
-    
+
     def get_name(self):
         return self.name
     def get_url(self):
@@ -35,7 +35,6 @@ class FeedSource(Base):
         return self.id
     def add_ad_regex(self,regex):
         self.ad_filters.append(regex)
-
 
 class FeedStorage:
     '''
@@ -50,7 +49,7 @@ class FeedStorage:
     def add_feed(self,name,url):
         self._session.add(FeedSource(name,url))
         self._session.commit()
-    
+
     def list_feeds(self,out_strm):
         for feed_source in self._session.query(FeedSource).all():
             out_strm.write((u'%s\n' % unicode(feed_source)).encode('utf-8'))

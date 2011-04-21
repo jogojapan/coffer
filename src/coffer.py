@@ -82,7 +82,7 @@ class Coffer:
     def run_command_shell(self):
         shell = CommandShell(self)
         shell.cmdloop()
-    
+
     def current_items(self, enable_ad_filter = False, check_existence = False):
         '''
         Returns a generator for the list of current items, i.e. the
