@@ -85,6 +85,7 @@ class CommandShell(Cmd):
                 fetch_targets.append((str(feed_id),entry.link))
                 counter += 1
             # Download contents
+            self._coffer.fetch_and_store(fetch_targets)
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
         self._coffer._item_storage.flush()
