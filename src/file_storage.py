@@ -46,8 +46,10 @@ class Bucket:
                  bzip2_path     = '/usr/bin/bzip2'):
         self._external_processes = external_processes
         self._bzip2_path         = bzip2_path
-        if not os.path.isdir(path):
-            raise FileStorageException("Invalid bucket path '%s'" % path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        elif not os.path.isdir(path):
+            raise FileStorageException("Invalid bucket path '%s' (not a directory)" % path)
         self._current_fileno = 0
         self._current_size   = 0
         self._path           = path
