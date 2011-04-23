@@ -81,6 +81,11 @@ class Bucket:
                 self._current_fileno += 1
                 exists = False
                 self._current_size = 0
+        
+        # This maintains a mapping from block ids to sets of filenames,
+        # i.e. a directory of all files stored in the tar blocks. This
+        # will be filled with data dynamically, on demand.
+        self._text_id_directory = {}
 
     def compress(self,abspath):
         '''
@@ -118,13 +123,62 @@ class Bucket:
             tarinfo.mtime = time.time()
             (tarinfo.uid,tarinfo.gid) = ui
             channel.addfile(tarinfo,StringIO(encoded_text))
+            if self._current_fileno in self._text_id_directory:
+                self._text_id_directory[self._current_fileno].add(text_id)
             self._current_size += len(encoded_text)
             if self._current_size >= self._max_block_size:
                 channel.close()
+                self.compress(filename)
                 self._current_fileno += 1
                 filename = self.generate_filename(self._current_fileno,False)
                 channel = tarfile.open(name=filename,mode='w')
         channel.close()
+
+    def retrieve(self,text_id):
+        '''
+        Retrieve the file designated by text_id. The function searches all
+        tar blocks, but shortcuts the search through the use of the
+        _text_id_directory. The file list of any tar block that has been
+        searched earlier is stored in _text_id_directory so there is no need
+        to open the tar file in this case. Tar blocks that have not been
+        searched earlier will be opened and their members list be stored
+        in _text_id_directory.
+        @param text_id: The non-escaped version of the id of the RSS item we
+              are looking for.
+        @return: A file object that gives access to the contents for text_id,
+              or None if text_id was not found in any tar block.
+        '''
+        found_it = False
+        while not found_it:
+            for fileno in range(self._current_fileno+1):
+                channel = None
+                is_in_fileno = False
+                # Check whether the text_id is in the block designated by fileno:
+                if fileno in self._text_id_directory:
+                    is_in_fileno = (text_id in self._text_id_directory[fileno])
+                else:
+                    filename = self.generate_filename(fileno,(fileno < self._current_fileno))
+                    if os.path.exists(filename):
+                        mode = 'r'
+                        if fileno < self._current_fileno:
+                            mode = 'r|bz2'
+                        channel = tarfile.open(name=filename,mode=mode)
+                        memberset = set([x.name for x in channel.getmembers()])
+                        self._text_id_directory[fileno] = memberset
+                        if text_id in memberset:
+                            is_in_fileno = True
+                        else:
+                            channel.close()
+                            channel = None
+                            continue
+                if is_in_fileno:
+                    if channel is None:
+                        mode = 'r'
+                        if fileno < self._current_fileno:
+                            mode = 'r|bz2'
+                        channel = tarfile.open(name=filename,mode=mode)
+                    return channel.extractfile(escape_path(filename))
+                    channel.close()
 
 class FileStorage(object):
     '''
@@ -179,3 +233,16 @@ class FileStorage(object):
                                                       self._max_block_size,
                                                       self._bzip2_path)
             self._directory[source_feed].store_all(text_objs)
+
+    def retrieve(self,source_feed,text_id):
+        '''
+        Return the contents of a particular item stored for a particular
+        RSS source feed.
+        @param source_feed: The id of the source RSS feed.
+        @param text_id: The non-escaped version of the id of the RSS item we
+              are looking for.
+        @return: A file object that gives access to the contents for text_id,
+              or None if text_id was could not be found.
+        '''
+        if source_feed in self._directory:
+                return self._directory[source_feed].retrieve(text_id)
