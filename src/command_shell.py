@@ -132,7 +132,7 @@ class CommandShell(Cmd):
         if len(args) == 0:
             sys.stderr.write('No feed name was specified.\n')
             return
-        name_pattern = args[0]
+        name_pattern = unicode(args[0],'utf-8')
         if not is_regex:
             name_pattern = re.escape(name_pattern)
         if ignore_case:
