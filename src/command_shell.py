@@ -111,15 +111,34 @@ class CommandShell(Cmd):
                 sys.stderr.write((u'Error: %s\n' % repr(err)).encode('utf-8'))
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
+            return
         self._coffer._item_storage.flush()
         sys.stdout.write((u'Added %d data records.\n' % counter).encode('utf-8'))
 
     def do_retrieve(self,parameters):
+        is_regex    = False
+        ignore_case = True
         parameters = shlex.split(parameters)
-        if len(parameters) == 0:
+        try:
+            opts,args = getopt.getopt(parameters,'pc',["pattern","case-sensitive"])
+            for o,_ in opts:
+                if o in ('-p','--pattern'):
+                    is_regex = True
+                elif o in ('-c','--case-sensitive'):
+                    ignore_case = False
+        except getopt.GetoptError,err:
+            sys.stderr.write(str(err) + '\n')
+            return
+        if len(args) == 0:
             sys.stderr.write('No feed name was specified.\n')
             return
-        p = re.compile(re.escape(parameters[0]))
+        name_pattern = args[0]
+        if not is_regex:
+            name_pattern = re.escape(name_pattern)
+        if ignore_case:
+            p = re.compile(name_pattern,re.I)
+        else:
+            p = re.compile(name_pattern)
         feeds = filter(lambda y:p.search(y.name),self._coffer._feed_storage.feeds())
         for feed in feeds:
             sys.stdout.write((u'%d\t%s\n' % (feed.id,feed.name)).encode('utf-8'))
