@@ -10,6 +10,7 @@ from cmd import Cmd
 import shlex
 import getopt
 import sys
+import re
 from file_storage import FileStorageException
 
 class CommandShell(Cmd):
@@ -112,6 +113,16 @@ class CommandShell(Cmd):
             sys.stderr.write(str(err) + '\n')
         self._coffer._item_storage.flush()
         sys.stdout.write((u'Added %d data records.\n' % counter).encode('utf-8'))
+
+    def do_retrieve(self,parameters):
+        parameters = shlex.split(parameters)
+        if len(parameters) == 0:
+            sys.stderr.write('No feed name was specified.\n')
+            return
+        p = re.compile(re.escape(parameters[0]))
+        feeds = filter(lambda y:p.search(y.name),self._coffer._feed_storage.feeds())
+        for feed in feeds:
+            sys.stdout.write((u'%d\t%s\n' % (feed.id,feed.name)).encode('utf-8'))
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
