@@ -7,6 +7,7 @@ Created on 2011/04/21
 from HTMLParser import HTMLParser
 # from HTMLParser import HTMLParseError
 import re
+import sys
 
 class HtmlLangid(HTMLParser):
     '''
@@ -26,9 +27,14 @@ class HtmlLangid(HTMLParser):
         self._result_language = ''
         self._result_encoding = ''
 
-    def feed(self,contents):
+    def feed(self,url,contents):
         contents = self._script_pattern.sub('',contents)
-        HTMLParser.feed(self,contents)
+        try:
+            HTMLParser.feed(self,contents)
+        except UnicodeDecodeError,err:
+            sys.stderr.write((u'Unicode decoding problem when processing contents of "%s".\n' & url).encode('utf-8'))
+            sys.stderr.write(repr(err) + '\n')
+            raise err
 
     def handle_starttag(self,tag,attrs):
         if tag == 'meta':

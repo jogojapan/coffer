@@ -48,7 +48,7 @@ class OneSiteFetcher(Thread):
                     contents = stream.read()
                     stream.close()
                     self._langid.reset()
-                    self._langid.feed(contents)
+                    self._langid.feed(url,contents)
                     decoder = get_decoder(self._langid._result_encoding,'utf-8')
                     (decoded_text,decoded_input_len) = decoder(contents,'ignore')
                     if decoded_input_len != len(contents):
