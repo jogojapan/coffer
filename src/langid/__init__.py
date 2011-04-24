@@ -15,6 +15,7 @@ def get_decoder(encoding,default = 'utf-8'):
         a default that actually exists. Otherwise a LookupError
         exception will be raised.
     '''
+    encoding = encoding.lower()
     if encoding in encoding_name_map:
         encoding = encoding_name_map[encoding]
     try:
