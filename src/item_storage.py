@@ -70,7 +70,7 @@ class ItemStorage:
             yield item
 
     def total(self):
-        return self._session.query().count()
+        return self._session.query(Item).count()
 
     def add(self,feed,item_id,title,date_parsed,link,description):
         item = Item(feed=feed,
