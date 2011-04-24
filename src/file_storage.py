@@ -182,6 +182,7 @@ class Bucket:
 
     def determine_storage_block(self,text_id):
         '''
+        @param text_id: The escaped version of the item id.
         @return: The block id where the text_id is stored, or None if
            it is not stored in this bucket.
         '''
@@ -190,7 +191,7 @@ class Bucket:
             # Check whether the text_id is in the block designated by fileno:
             if fileno in self._text_id_directory:
                 if text_id in self._text_id_directory[fileno]:
-                    return True
+                    return fileno
             else:
                 filename = self.generate_filename(fileno,(fileno < self._current_fileno))
                 if os.path.exists(filename):
@@ -308,12 +309,13 @@ class FileStorage(object):
 
     def determine_storage_block(self,source_feed,text_id):
         '''
+        @param text_id: The unescaped (original) version of the item id
         @return: The block id where the text_id is stored, or None if
            it is not stored anywhere.
         '''
         source_feed = self.normalize_feed_id(source_feed)
         if source_feed in self._directory:
-            return self._directory[source_feed].determine_storage_block(text_id)
+            return self._directory[source_feed].determine_storage_block(escape_path(text_id))
         return None
 
     def items(self,source_feed):
