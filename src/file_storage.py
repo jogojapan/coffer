@@ -180,6 +180,34 @@ class Bucket:
                 channel.close()
         return None
 
+    def determine_storage_block(self,text_id):
+        '''
+        @return: The block id where the text_id is stored, or None if
+           it is not stored in this bucket.
+        '''
+        for fileno in range(self._current_fileno+1):
+            channel = None
+            # Check whether the text_id is in the block designated by fileno:
+            if fileno in self._text_id_directory:
+                if text_id in self._text_id_directory[fileno]:
+                    return True
+            else:
+                filename = self.generate_filename(fileno,(fileno < self._current_fileno))
+                if os.path.exists(filename):
+                    mode = 'r'
+                    if fileno < self._current_fileno:
+                        mode = 'r|bz2'
+                    channel = tarfile.open(name=filename,mode=mode)
+                    memberset = set([x.name for x in channel.getmembers()])
+                    channel.close()
+                    self._text_id_directory[fileno] = memberset
+                    if text_id in memberset:
+                        return fileno
+                    else:
+                        channel = None
+                        continue
+        return None
+
     def items(self):
         for fileno in range(self._current_fileno+1):
             channel = None
@@ -275,7 +303,18 @@ class FileStorage(object):
         '''
         source_feed = self.normalize_feed_id(source_feed)
         if source_feed in self._directory:
-                return self._directory[source_feed].retrieve(text_id)
+            return self._directory[source_feed].retrieve(text_id)
+        return None
+
+    def determine_storage_block(self,source_feed,text_id):
+        '''
+        @return: The block id where the text_id is stored, or None if
+           it is not stored anywhere.
+        '''
+        source_feed = self.normalize_feed_id(source_feed)
+        if source_feed in self._directory:
+            return self._directory[source_feed].determine_storage_block(text_id)
+        return None
 
     def items(self,source_feed):
         '''
