@@ -69,6 +69,9 @@ class ItemStorage:
         for item in self._session.query(Item).all():
             yield item
 
+    def total(self):
+        return self._session.query().count()
+
     def add(self,feed,item_id,title,date_parsed,link,description):
         item = Item(feed=feed,
                     original_id  = item_id,
