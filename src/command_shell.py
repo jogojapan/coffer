@@ -189,7 +189,12 @@ class CommandShell(Cmd):
         set to -1, check if we can find it in the file storage and
         update the storage-block accordingly.
         '''
-        return
+        for item in self._coffer._item_storage.items():
+            if not item.is_stored():
+                sb = self._coffer._file_storage.determine_storage_block(item.feed,item.id)
+                if sb is not None:
+                    item.set_storage_block(sb)
+            self._coffer._item_storage.flush()
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')

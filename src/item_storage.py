@@ -45,6 +45,12 @@ class Item(Base):
                                       self.title,
                                       self.link)
 
+    def is_stored(self):
+        return (self.storage_block != -1)
+
+    def set_storage_block(self,sb):
+        self.storage_block = sb
+
 class ItemStorage:
     '''
     Representation of the items table.
