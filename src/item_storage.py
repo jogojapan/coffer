@@ -27,6 +27,10 @@ class Item(Base):
     date        = Column(BigInteger,index=True)
     link        = Column(String)
     description = Column(String(convert_unicode=True))
+    # If the link was downloaded and stored in the file storage,
+    # this specifies the block number. Otherwise it will be set
+    # to -1.
+    storage_block = Column(Integer,default=-1)
 
     def __init__(self,feed,original_id,title,date_parsed,link,description):
         self.feed        = feed
@@ -54,6 +58,10 @@ class ItemStorage:
     def exists(self,original_id):
         c = self._session.query(Item).filter(Item.original_id == original_id).count()
         return (c != 0)
+
+    def items(self):
+        for item in self._session.query(Item).all():
+            yield item
 
     def add(self,feed,item_id,title,date_parsed,link,description):
         item = Item(feed=feed,
