@@ -116,19 +116,26 @@ class CommandShell(Cmd):
         sys.stdout.write((u'Added %d data records.\n' % counter).encode('utf-8'))
 
     def do_retrieve(self,parameters):
+        '''
+        Retrieval from the content repository, i.e. the file storage.
+        '''
         is_regex    = False
         ignore_case = True
         list_items  = False
+        extract     = None
         parameters = shlex.split(parameters)
         try:
-            opts,args = getopt.getopt(parameters,'pcl',["pattern","case-sensitive"])
-            for o,_ in opts:
+            opts,args = getopt.getopt(parameters,'pcle:',
+                                      ["pattern","case-sensitive","extract"])
+            for o,a in opts:
                 if o in ('-p','--pattern'):
                     is_regex = True
                 elif o in ('-c','--case-sensitive'):
                     ignore_case = False
                 elif o == '-l':
                     list_items = True
+                elif o in ('-e','--extract'):
+                    extract = a
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
             return
@@ -148,6 +155,11 @@ class CommandShell(Cmd):
             if list_items:
                 for text_id in self._coffer._file_storage.items(feed.id):
                     sys.stdout.write((u'\t\t%s\n' % text_id).encode('utf-8'))
+            elif extract is not None:
+                stream = self._coffer._file_storage.retrieve(feed.id,extract)
+                if stream:
+                    unicode_contents = unicode(stream.read(),'utf-8')
+                    sys.stdout.write((u'%s\n' % unicode_contents).encode('utf-8'))
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')

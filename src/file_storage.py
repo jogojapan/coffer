@@ -143,7 +143,7 @@ class Bucket:
         to open the tar file in this case. Tar blocks that have not been
         searched earlier will be opened and their members list be stored
         in _text_id_directory.
-        @param text_id: The non-escaped version of the id of the RSS item we
+        @param text_id: The escaped version of the id of the RSS item we
               are looking for.
         @return: A file object that gives access to the contents for text_id,
               or None if text_id was not found in any tar block.
@@ -171,11 +171,12 @@ class Bucket:
                         continue
             if is_in_fileno:
                 if channel is None:
+                    filename = self.generate_filename(fileno,(fileno < self._current_fileno))
                     mode = 'r'
                     if fileno < self._current_fileno:
                         mode = 'r|bz2'
                     channel = tarfile.open(name=filename,mode=mode)
-                return channel.extractfile(escape_path(filename))
+                return channel.extractfile(text_id)
                 channel.close()
         return None
 
@@ -198,7 +199,6 @@ class Bucket:
                     self._text_id_directory[fileno] = memberset
                     for text_id in memberset:
                         yield text_id
-
 
 class FileStorage(object):
     '''
@@ -268,7 +268,7 @@ class FileStorage(object):
         Return the contents of a particular item stored for a particular
         RSS source feed.
         @param source_feed: The id of the source RSS feed.
-        @param text_id: The non-escaped version of the id of the RSS item we
+        @param text_id: The escaped version of the id of the RSS item we
               are looking for.
         @return: A file object that gives access to the contents for text_id,
               or None if text_id was could not be found.
