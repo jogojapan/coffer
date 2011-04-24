@@ -29,7 +29,12 @@ class CommandShell(Cmd):
         return self._end_now
 
     def do_list(self,parameters):
-        self._coffer._feed_storage.list_feeds(sys.stdout)
+        parameters = shlex.split(parameters)
+        if len(parameters) > 0 and parameters[0] == 'items':
+            for item in self._coffer._item_storage.items():
+                sys.stdout.write((u'%s\n' % item.title).encode('utf-8'))
+        else:
+            self._coffer._feed_storage.list_feeds(sys.stdout)
 
     def do_add(self,parameters):
         parameters = shlex.split(parameters)
@@ -160,6 +165,14 @@ class CommandShell(Cmd):
                 if stream:
                     unicode_contents = unicode(stream.read(),'utf-8')
                     sys.stdout.write((u'%s\n' % unicode_contents).encode('utf-8'))
+
+    def do_tablesync(self,parameters):
+        '''
+        For every item in the item storage that has its storage-block
+        set to -1, check if we can find it in the file storage and
+        update the storage-block accordingly.
+        '''
+        return
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
