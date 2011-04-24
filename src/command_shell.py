@@ -12,6 +12,7 @@ import getopt
 import sys
 import re
 from file_storage import FileStorageException
+from time import gmtime,strftime
 
 class CommandShell(Cmd):
     '''
@@ -31,25 +32,29 @@ class CommandShell(Cmd):
     def do_list(self,parameters):
         show_items          = False
         show_storage_blocks = False
+        show_date           = False
         parameters = shlex.split(parameters)
         try:
-            opts,_args = getopt.getopt(parameters,'',["items","storage-blocks"])
+            opts,_args = getopt.getopt(parameters,'',["items","storage-blocks","date"])
             for o,_ in opts:
                 if o == '--items':
                     show_items = True
                 elif o == '--storage-blocks':
                     show_storage_blocks = True
+                elif o == '--date':
+                    show_date = True
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
             return
         if show_items:
-            if show_storage_blocks:
-                for item in self._coffer._item_storage.items():
-                    sys.stdout.write((u'%d\t%s\n' % \
-                                      (item.storage_block,item.title)).encode('utf-8'))
-            else:
-                for item in self._coffer._item_storage.items():
-                    sys.stdout.write((u'%s\n' % item.title).encode('utf-8'))
+            for item in self._coffer._item_storage.items():
+                outstrs = []
+                if show_storage_blocks:
+                    outstrs.append(u'%d' % item.storage_block)
+                if show_date:
+                    outstrs.append(u'%s' % strftime("%y/%m/%d %H:%M",gmtime(item.date)))
+                outstrs.append(u'%s\n' % item.title)
+                sys.stdout.write(u'\t'.join(outstrs))
         else:
             self._coffer._feed_storage.list_feeds(sys.stdout)
 
