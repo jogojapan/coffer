@@ -148,37 +148,57 @@ class Bucket:
         @return: A file object that gives access to the contents for text_id,
               or None if text_id was not found in any tar block.
         '''
-        found_it = False
-        while not found_it:
-            for fileno in range(self._current_fileno+1):
-                channel = None
-                is_in_fileno = False
-                # Check whether the text_id is in the block designated by fileno:
-                if fileno in self._text_id_directory:
-                    is_in_fileno = (text_id in self._text_id_directory[fileno])
-                else:
-                    filename = self.generate_filename(fileno,(fileno < self._current_fileno))
-                    if os.path.exists(filename):
-                        mode = 'r'
-                        if fileno < self._current_fileno:
-                            mode = 'r|bz2'
-                        channel = tarfile.open(name=filename,mode=mode)
-                        memberset = set([x.name for x in channel.getmembers()])
-                        self._text_id_directory[fileno] = memberset
-                        if text_id in memberset:
-                            is_in_fileno = True
-                        else:
-                            channel.close()
-                            channel = None
-                            continue
-                if is_in_fileno:
-                    if channel is None:
-                        mode = 'r'
-                        if fileno < self._current_fileno:
-                            mode = 'r|bz2'
-                        channel = tarfile.open(name=filename,mode=mode)
-                    return channel.extractfile(escape_path(filename))
+        for fileno in range(self._current_fileno+1):
+            channel = None
+            is_in_fileno = False
+            # Check whether the text_id is in the block designated by fileno:
+            if fileno in self._text_id_directory:
+                is_in_fileno = (text_id in self._text_id_directory[fileno])
+            else:
+                filename = self.generate_filename(fileno,(fileno < self._current_fileno))
+                if os.path.exists(filename):
+                    mode = 'r'
+                    if fileno < self._current_fileno:
+                        mode = 'r|bz2'
+                    channel = tarfile.open(name=filename,mode=mode)
+                    memberset = set([x.name for x in channel.getmembers()])
+                    self._text_id_directory[fileno] = memberset
+                    if text_id in memberset:
+                        is_in_fileno = True
+                    else:
+                        channel.close()
+                        channel = None
+                        continue
+            if is_in_fileno:
+                if channel is None:
+                    mode = 'r'
+                    if fileno < self._current_fileno:
+                        mode = 'r|bz2'
+                    channel = tarfile.open(name=filename,mode=mode)
+                return channel.extractfile(escape_path(filename))
+                channel.close()
+        return None
+
+    def items(self):
+        for fileno in range(self._current_fileno+1):
+            channel = None
+            # Check whether the text_id is in the block designated by fileno:
+            if fileno in self._text_id_directory:
+                for text_id in self._text_id_directory[fileno]:
+                    yield text_id
+            else:
+                filename = self.generate_filename(fileno,(fileno < self._current_fileno))
+                if os.path.exists(filename):
+                    mode = 'r'
+                    if fileno < self._current_fileno:
+                        mode = 'r|bz2'
+                    channel = tarfile.open(name=filename,mode=mode)
+                    memberset = set([x.name for x in channel.getmembers()])
                     channel.close()
+                    self._text_id_directory[fileno] = memberset
+                    for text_id in memberset:
+                        yield text_id
+
 
 class FileStorage(object):
     '''
@@ -246,3 +266,13 @@ class FileStorage(object):
         '''
         if source_feed in self._directory:
                 return self._directory[source_feed].retrieve(text_id)
+
+    def items(self,source_feed):
+        '''
+        Retrieve an iterator for the list of items for the given
+        source feed id.
+        '''
+        if source_feed in self._directory:
+            return self._directory[source_feed].items()
+        else:
+            return None

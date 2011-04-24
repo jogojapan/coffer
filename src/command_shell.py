@@ -118,14 +118,17 @@ class CommandShell(Cmd):
     def do_retrieve(self,parameters):
         is_regex    = False
         ignore_case = True
+        list_items  = False
         parameters = shlex.split(parameters)
         try:
-            opts,args = getopt.getopt(parameters,'pc',["pattern","case-sensitive"])
+            opts,args = getopt.getopt(parameters,'pcl',["pattern","case-sensitive"])
             for o,_ in opts:
                 if o in ('-p','--pattern'):
                     is_regex = True
                 elif o in ('-c','--case-sensitive'):
                     ignore_case = False
+                elif o == '-l':
+                    list_items = True
         except getopt.GetoptError,err:
             sys.stderr.write(str(err) + '\n')
             return
@@ -142,6 +145,9 @@ class CommandShell(Cmd):
         feeds = filter(lambda y:p.search(y.name),self._coffer._feed_storage.feeds())
         for feed in feeds:
             sys.stdout.write((u'%d\t%s\n' % (feed.id,feed.name)).encode('utf-8'))
+            if list_items:
+                for text_id in self._coffer._file_storage.items(feed.id):
+                    sys.stdout.write((u'\t\t%s\n' % text_id).encode('utf-8'))
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
