@@ -200,7 +200,7 @@ class CommandShell(Cmd):
             processed_rows += 1
             processed_percentage = 100 * processed_rows / total_rows
             if (processed_percentage % 10) > processed_tenths:
-                sys.stderr.write('Processed %d%\n' % processed_percentage)
+                sys.stderr.write('Processed %d\n' % processed_percentage)
                 processed_tenths = processed_percentage % 10
         self._coffer._item_storage.flush()
 
