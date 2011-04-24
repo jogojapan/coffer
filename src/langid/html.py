@@ -32,7 +32,7 @@ class HtmlLangid(HTMLParser):
         try:
             HTMLParser.feed(self,contents)
         except UnicodeDecodeError,err:
-            sys.stderr.write((u'Unicode decoding problem when processing contents of "%s".\n' & url).encode('utf-8'))
+            sys.stderr.write((u'Unicode decoding problem when processing contents of "%s".\n' % url).encode('utf-8'))
             sys.stderr.write(repr(err) + '\n')
             raise err
 
