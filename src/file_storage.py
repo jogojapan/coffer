@@ -235,6 +235,15 @@ class FileStorage(object):
                                                     max_block_size,
                                                     bzip2_path)
 
+    def normalize_feed_id(self,feed_id):
+        '''
+        Feed ids are internally processed as strings. So we normalize
+        them to strings.
+        '''
+        if isinstance(feed_id,(int,long)):
+            return str(feed_id)
+        return feed_id
+
     def store_all(self,text_objs_dict):
         '''
         @param text_objs_dict: A hash of source-feed -> [(text_id,unicode_text),..]
@@ -264,6 +273,7 @@ class FileStorage(object):
         @return: A file object that gives access to the contents for text_id,
               or None if text_id was could not be found.
         '''
+        source_feed = self.normalize_feed_id(source_feed)
         if source_feed in self._directory:
                 return self._directory[source_feed].retrieve(text_id)
 
@@ -272,6 +282,7 @@ class FileStorage(object):
         Retrieve an iterator for the list of items for the given
         source feed id.
         '''
+        source_feed = self.normalize_feed_id(source_feed)
         if source_feed in self._directory:
             return self._directory[source_feed].items()
         else:
