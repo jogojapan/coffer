@@ -29,10 +29,27 @@ class CommandShell(Cmd):
         return self._end_now
 
     def do_list(self,parameters):
+        show_items          = False
+        show_storage_blocks = False
         parameters = shlex.split(parameters)
-        if len(parameters) > 0 and parameters[0] == 'items':
-            for item in self._coffer._item_storage.items():
-                sys.stdout.write((u'%s\n' % item.title).encode('utf-8'))
+        try:
+            opts,_args = getopt.getopt(parameters,'',["items","storage-blocks"])
+            for o,_ in opts:
+                if o == '--items':
+                    show_items = True
+                elif o == '--storage-blocks':
+                    show_storage_blocks = True
+        except getopt.GetoptError,err:
+            sys.stderr.write(str(err) + '\n')
+            return
+        if show_items:
+            if show_storage_blocks:
+                for item in self._coffer._item_storage.items():
+                    sys.stdout.write((u'%d\t%s\n' % \
+                                      (item.storage_block,item.title)).encode('utf-8'))
+            else:
+                for item in self._coffer._item_storage.items():
+                    sys.stdout.write((u'%s\n' % item.title).encode('utf-8'))
         else:
             self._coffer._feed_storage.list_feeds(sys.stdout)
 
