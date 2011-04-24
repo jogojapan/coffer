@@ -189,12 +189,20 @@ class CommandShell(Cmd):
         set to -1, check if we can find it in the file storage and
         update the storage-block accordingly.
         '''
+        total_rows       = self._coffer._item_storage.total()
+        processed_rows   = 0
+        processed_tenths = 0
         for item in self._coffer._item_storage.items():
             if not item.is_stored():
-                sb = self._coffer._file_storage.determine_storage_block(item.feed,item.id)
+                sb = self._coffer._file_storage.determine_storage_block(item.feed,item.original_id)
                 if sb is not None:
                     item.set_storage_block(sb)
-            self._coffer._item_storage.flush()
+            processed_rows += 1
+            processed_percentage = 100 * processed_rows / total_rows
+            if (processed_percentage % 10) > processed_tenths:
+                sys.stderr.write('Processed %d%\n' % processed_percentage)
+                processed_tenths = processed_percentage % 10
+        self._coffer._item_storage.flush()
 
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
