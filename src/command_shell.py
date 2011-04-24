@@ -192,16 +192,26 @@ class CommandShell(Cmd):
         total_rows       = self._coffer._item_storage.total()
         processed_rows   = 0
         processed_tenths = 0
+        need_to_update   = []
         for item in self._coffer._item_storage.items():
             if not item.is_stored():
-                sb = self._coffer._file_storage.determine_storage_block(item.feed,item.original_id)
-                if sb is not None:
-                    item.set_storage_block(sb)
+                need_to_update.append(item)
             processed_rows += 1
-            processed_percentage = 100 * processed_rows / total_rows
-            if (processed_percentage % 10) > processed_tenths:
-                sys.stderr.write('Processed %d\n' % processed_percentage)
-                processed_tenths = processed_percentage % 10
+            processed_percentage = int(100 * float(processed_rows) / total_rows)
+            if (processed_percentage / 10) > processed_tenths:
+                sys.stderr.write('Checked %d of %d rows, %d%%\n' % \
+                                 (processed_rows,total_rows,processed_percentage))
+                processed_tenths = processed_percentage / 10
+        sys.stderr.write('Now updating storage block indicators.\n')
+        no_updated = 0
+        for item in need_to_update:
+            sb = self._coffer._file_storage.determine_storage_block(item.feed,item.original_id)
+            if sb is not None:
+                item.set_storage_block(sb)
+                no_updated += 1
+        success_rate = int(100 * float(no_updated) / len(need_to_update))
+        sys.stderr.write('Successfully updated %d of %d (%d%%) records.\n' % \
+                         (no_updated,len(need_to_update),success_rate))
         self._coffer._item_storage.flush()
 
     def do_EOF(self,parameters):
