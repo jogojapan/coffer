@@ -69,6 +69,10 @@ class ItemStorage:
         for item in self._session.query(Item).all():
             yield item
 
+    def items_to_fetch(self):
+        for item in self._session.query(Item).filter(Item.storage_block == -1):
+            yield item
+
     def total(self):
         return self._session.query(Item).count()
 

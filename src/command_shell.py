@@ -224,6 +224,24 @@ class CommandShell(Cmd):
             item.set_storage_block(-1)
         self._coffer._item_storage.flush()
 
+    def do_fetch(self,parameters):
+        '''
+        Download articles that are missing from the file storage.
+        '''
+        counter = 0
+        fetch_targets = []
+        for item in self._coffer._item_storage.items_to_fetch():
+            fetch_targets.append((str(item.feed),item.link,item.original_id,item))
+            counter += 1
+        # Download contents
+        sys.stderr.write('Now downloading %d items.\n' % counter)
+        try:
+            self._coffer.fetch_and_store(fetch_targets)
+        except FileStorageException,err:
+            sys.stderr.write((u'Error: %s\n' % repr(err)).encode('utf-8'))
+        self._coffer._item_storage.flush()
+        sys.stdout.write((u'Added %d data records.\n' % counter).encode('utf-8'))
+
     def do_EOF(self,parameters):
         sys.stdout.write('\n')
         self._end_now = True
