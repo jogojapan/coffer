@@ -42,9 +42,9 @@ class HtmlLangid(HTMLParser):
             content    = ''
             for (key,val) in attrs:
                 if key == 'http-equiv':
-                    http_equiv = val
+                    http_equiv = val.lower()
                 elif key == 'content':
-                    content = val
+                    content = val.lower()
             if http_equiv == 'content-language':
                 self._result_language = content
             elif http_equiv == 'content-type':
