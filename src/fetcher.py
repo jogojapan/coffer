@@ -33,15 +33,15 @@ class OneSiteFetcher(Thread):
         self._timeout      = timeout
         self._langid       = HtmlLangid()
     
-    def append_url(self,feed_id,url,metainfo):
+    def append_url(self,feed_id,url,metainfo,item):
         '''
         Appends a (feed-id,URL,metainfo) pair to the target list. This MUST be done
         before the thread is started.
         '''
-        self._url_list.append((feed_id,url,metainfo))
+        self._url_list.append((feed_id,url,metainfo,item))
     
     def run(self):
-        for (feed_id,url,metainfo) in self._url_list:
+        for (feed_id,url,metainfo,item) in self._url_list:
             try:
                 stream = self._opener.open(url,timeout=self._timeout)
                 if stream:
@@ -56,7 +56,7 @@ class OneSiteFetcher(Thread):
                                          "to Unicode completely. " + \
                                          ("Only %d out of %d " % (decoded_input_len,len(contents))) + \
                                          "bytes were decoded.\n")
-                    self._results.append((feed_id,url,decoded_text,metainfo))
+                    self._results.append((feed_id,url,decoded_text,metainfo,item))
             except HTTPError,err:
                 sys.stderr.write((u'Could not download "%s": %s\n' \
                                   % (url,repr(err))).encode('utf-8'))
@@ -95,13 +95,13 @@ class Fetcher(object):
         # Assign feeds/URLs to threads
         current_thread = 0
         assignments    = {}
-        for (feed_id,url,metainfo) in targets:
+        for (feed_id,url,metainfo,item) in targets:
             if feed_id not in assignments:
                 assignments[feed_id] = thread_pool[current_thread]
                 current_thread += 1
                 if current_thread >= self._max_threads:
                     current_thread = 0
-            assignments[feed_id].append_url(feed_id,url,metainfo)
+            assignments[feed_id].append_url(feed_id,url,metainfo,item)
         # Run the threads
         for fetcher in thread_pool:
             fetcher.start()
@@ -110,8 +110,8 @@ class Fetcher(object):
             fetcher.join()
         results = {}
         for fetcher in thread_pool:
-            for (feed_id,url,contents,metainfo) in fetcher._results:
+            for (feed_id,url,contents,metainfo,item) in fetcher._results:
                 if feed_id not in results:
                     results[feed_id] = []
-                results[feed_id].append((metainfo,contents))
+                results[feed_id].append((metainfo,contents,item))
         return results

@@ -73,6 +73,11 @@ class ItemStorage:
         return self._session.query(Item).count()
 
     def add(self,feed,item_id,title,date_parsed,link,description):
+        '''
+        Create a new item and insert it into the database.
+        @return: The item that was created, in case the caller wants to
+           modify it.
+        '''
         item = Item(feed=feed,
                     original_id  = item_id,
                     title        = title,
@@ -80,6 +85,7 @@ class ItemStorage:
                     link         = link,
                     description  = description)
         self._session.add(item)
+        return item
 
     def flush(self):
         self._session.commit()

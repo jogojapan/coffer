@@ -118,13 +118,13 @@ class CommandShell(Cmd):
             for (feed_id,entryid,entry) in \
                          self._coffer.current_items(enable_ad_filter=enable_ad_filter,
                                                     check_existence=True):
-                self._coffer._item_storage.add(feed        = feed_id,
-                                               item_id     = entryid,
-                                               title       = entry.title,
-                                               date_parsed = entry.date_parsed,
-                                               link        = entry.link,
-                                               description = entry.description)
-                fetch_targets.append((str(feed_id),entry.link,entryid))
+                item = self._coffer._item_storage.add(feed        = feed_id,
+                                                      item_id     = entryid,
+                                                      title       = entry.title,
+                                                      date_parsed = entry.date_parsed,
+                                                      link        = entry.link,
+                                                      description = entry.description)
+                fetch_targets.append((str(feed_id),entry.link,entryid,item))
                 counter += 1
             # Download contents
             try:

@@ -116,13 +116,15 @@ class Bucket:
             channel = tarfile.open(name=filename,mode='a')
         else:
             channel = tarfile.open(name=filename,mode='w')
-        for (text_id,unicode_text) in text_objs:
+        for (text_id,unicode_text,item) in text_objs:
             encoded_text = unicode_text.encode('utf-8')
             tarinfo = tarfile.TarInfo(escape_path(text_id))
             tarinfo.size = len(encoded_text)
             tarinfo.mtime = time.time()
             (tarinfo.uid,tarinfo.gid) = ui
             channel.addfile(tarinfo,StringIO(encoded_text))
+            # Store the block id inside the item
+            item.storage_block = self._current_fileno
             if self._current_fileno in self._text_id_directory:
                 self._text_id_directory[self._current_fileno].add(text_id)
             self._current_size += len(encoded_text)
