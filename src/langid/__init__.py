@@ -1,4 +1,5 @@
 import codecs
+import sys
 
 encoding_name_map = {'euc-jp':'euc_jp'}
 
@@ -21,5 +22,7 @@ def get_decoder(encoding,default = 'utf-8'):
     try:
         decoder = codecs.getdecoder(encoding)
     except LookupError:
+        sys.stderr.write('Warning: "%s" is an unknown encoding. Defaulting to UTF-8.\n' \
+                         % encoding)
         return codecs.getdecoder(default)
     return decoder
