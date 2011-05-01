@@ -29,6 +29,7 @@ class HtmlLangid(HTMLParser):
 
     def feed(self,url,contents):
         contents = self._script_pattern.sub('',contents)
+#        HTMLParser.feed(self,contents)
         try:
             HTMLParser.feed(self,contents)
         except UnicodeDecodeError,err:
