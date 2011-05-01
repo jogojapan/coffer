@@ -54,7 +54,7 @@ class CommandShell(Cmd):
                 if show_date:
                     outstrs.append(u'%s' % strftime("%y/%m/%d %H:%M",gmtime(item.date)))
                 outstrs.append(u'%s\n' % item.title)
-                sys.stdout.write(u'\t'.join(outstrs))
+                sys.stdout.write((u'\t'.join(outstrs)).encode('utf-8'))
         else:
             self._coffer._feed_storage.list_feeds(sys.stdout)
 
