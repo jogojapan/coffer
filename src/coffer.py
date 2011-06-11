@@ -91,7 +91,11 @@ class Coffer:
         of whether they are stored in our database.
         '''
         feed_results = feedparser.parse(url)
-        return feed_results.feed.title
+        sys.stderr.write(str(feed_results))
+        if 'title' in feed_results.feed:
+            return feed_results.feed.title
+        else:
+            return None
 
     def current_items(self,
                       enable_ad_filter = False,
