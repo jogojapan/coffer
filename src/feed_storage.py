@@ -54,6 +54,9 @@ class FeedStorage:
         for feed_source in self._session.query(FeedSource).all():
             out_strm.write((u'%s\n' % unicode(feed_source)).encode('utf-8'))
 
+    def num_feeds(self):
+        return self._session.query(FeedSource).count()
+
     def feeds(self):
         for feed_source in self._session.query(FeedSource).all():
             yield feed_source
