@@ -50,6 +50,7 @@ class QCoffer(QtGui.QMainWindow):
             self.feed_table.setItem(row,2,QtGui.QTableWidgetItem(feed_source.url))
             row += 1
         self.feed_table.resizeColumnsToContents()
+        self.feed_table.resizeRowsToContents()
         self.feed_table.itemClicked.connect(self.view_feed_items)
         self.adjust_width()
         self.setCentralWidget(self.feed_table)
@@ -64,7 +65,7 @@ class QCoffer(QtGui.QMainWindow):
         self.acUpdateCounters.setStatusTip('Update counters')
         self.connect(self.acUpdateCounters,QtCore.SIGNAL('triggered()'),self.update_counters)
 
-        self.acUpdateDB = QtGui.QAction(QtGui.QIcon('gui/icons/coffer.ico'),'Update DB',self)
+        self.acUpdateDB = QtGui.QAction(QtGui.QIcon.fromTheme('download'),'Update DB',self)
         #self.acUpdateDB.setShortcut('F5')
         self.acUpdateDB.setStatusTip('Update DB')
         self.connect(self.acUpdateDB,QtCore.SIGNAL('triggered()'),self.update_database)
@@ -89,10 +90,12 @@ class QCoffer(QtGui.QMainWindow):
         self.statusBar()
 
         self.menubar = self.menuBar()
+        self.menuCoffer = self.menubar.addMenu('&Coffer')
+        self.menuCoffer.addAction(self.acUpdateDB)
+        self.menuCoffer.addAction(self.acQuit)
         self.menuFeeds = self.menubar.addMenu('&Feeds')
         self.menuFeeds.addAction(self.acAddFeed)
         self.menuFeeds.addAction(self.acDeleteFeed)
-        self.menuFeeds.addAction(self.acQuit)
 
         self.threads_access = QtCore.QMutex()
         self.threads = []
