@@ -31,15 +31,15 @@ class QCoffer(QtGui.QMainWindow):
         config_parser = SafeConfigParser()
         config_parser.read(config_path)
         # Set up coffer
-        self._coffer = Coffer(config_parser)
+        self.coffer = Coffer(config_parser)
 
         self.setGeometry(1800,300,500,350)
         self.setWindowTitle(u'Coffer - A Corpus Feed Reader')
 
-        feed_count = self._coffer._feed_storage.num_feeds()
+        feed_count = self.coffer._feed_storage.num_feeds()
         self.feed_table = QtGui.QTableWidget(feed_count,3,self)
         row = 0
-        for feed_source in self._coffer._feed_storage.feeds():
+        for feed_source in self.coffer._feed_storage.feeds():
             # Function
             action_item = QViewFeedItems(feed_source)
             self.feed_table.setItem(row,0,action_item)
@@ -82,14 +82,14 @@ class QCoffer(QtGui.QMainWindow):
 
     def view_feed_items(self,table_widget_item):
         if table_widget_item.type() == QViewFeedItems.TYPE:
-            dock = QItemList(self,self._coffer,table_widget_item.feed_source)
+            dock = QItemList(self,self.coffer,table_widget_item.feed_source)
             dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dock)
 
     def closeEvent(self,event):
         # QtGui.QMessageBox.information(self,u'Notification',u'Finishing.',
         #                               QtGui.QMessageBox.Ok)
-        self._coffer.finish()
+        self.coffer.finish()
         event.accept()
 
     def add_feed(self):
@@ -97,12 +97,12 @@ class QCoffer(QtGui.QMainWindow):
         if ok:
             self.setStatusTip(u'Loading feed from %s' % feed_url)
             feed_url = str(feed_url)
-            feed_title = self._coffer.get_feed_info(feed_url)
+            feed_title = self.coffer.get_feed_info(feed_url)
             if feed_title is None:
                 QtGui.QMessageBox.warning(self,u'Invalid URL',u'Could not retrieve information from %s.' % feed_url,
                                               QtGui.QMessageBox.Ok)
                 return
-            self._coffer._feed_storage.add_feed(feed_title,feed_url)
+            self.coffer._feed_storage.add_feed(feed_title,feed_url)
             row = self.feed_table.rowCount()
             self.feed_table.insertRow(row)
             self.feed_table.setItem(row,0,QtGui.QTableWidgetItem(feed_title))
