@@ -27,6 +27,7 @@ class QViewFeedItems(QtGui.QTableWidgetItem):
 class QCoffer(QtGui.QMainWindow):
     def __init__(self,config_path):
         QtGui.QMainWindow.__init__(self)
+        self.setWindowIcon(QtGui.QIcon('gui/icons/coffer.ico'))
 
         # Parse config file
         config_parser = SafeConfigParser()
@@ -58,6 +59,11 @@ class QCoffer(QtGui.QMainWindow):
         self.acQuit.setStatusTip('Quit Coffer')
         self.connect(self.acQuit,QtCore.SIGNAL('triggered()'),QtCore.SLOT('close()'))
 
+        self.acUpdateDB = QtGui.QAction(QtGui.QIcon.fromTheme('view-refresh'),'Update DB',self)
+        self.acUpdateDB.setShortcut('F5')
+        self.acUpdateDB.setStatusTip('Update DB')
+        self.connect(self.acUpdateDB,QtCore.SIGNAL('triggered()'),self.update_database)
+
         self.acAddFeed = QtGui.QAction(QtGui.QIcon.fromTheme('list-add'),'Add feed',self)
         self.acAddFeed.setShortcut('Strg+Ins')
         self.acAddFeed.setStatusTip('Add feed')
@@ -70,6 +76,7 @@ class QCoffer(QtGui.QMainWindow):
 
         self.toolbar = self.addToolBar(u'Feeds')
         self.toolbar.addAction(self.acQuit)
+        self.toolbar.addAction(self.acUpdateDB)
         self.toolbar.addAction(self.acAddFeed)
         self.toolbar.addAction(self.acDeleteFeed)
 
@@ -132,6 +139,9 @@ class QCoffer(QtGui.QMainWindow):
             self.feed_table.setItem(row,0,QtGui.QTableWidgetItem(feed_title))
             self.feed_table.setItem(row,1,QtGui.QTableWidgetItem(feed_url))
             self.setStatusTip(u'')
+
+    def update_database(self):
+        pass
 
     def adjust_width(self):
         self.resize(50 + reduce(lambda x,y:x+y,
