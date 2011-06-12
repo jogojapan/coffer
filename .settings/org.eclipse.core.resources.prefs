@@ -1,4 +1,4 @@
-#Sun Jun 12 21:35:51 JST 2011
+#Sun Jun 12 22:04:41 JST 2011
 eclipse.preferences.version=1
 encoding//src/coffer.py=utf-8
 encoding//src/command_shell.py=utf-8
@@ -8,3 +8,4 @@ encoding//src/file_storage.py=utf-8
 encoding//src/os_specific/__init__.py=utf-8
 encoding//src/os_specific/userinfo.py=utf-8
 encoding//src/qcoffer.py=utf-8
+encoding//src/qcounter_update_thread.py=utf-8

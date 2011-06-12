@@ -59,8 +59,13 @@ class QCoffer(QtGui.QMainWindow):
         self.acQuit.setStatusTip('Quit Coffer')
         self.connect(self.acQuit,QtCore.SIGNAL('triggered()'),QtCore.SLOT('close()'))
 
-        self.acUpdateDB = QtGui.QAction(QtGui.QIcon.fromTheme('view-refresh'),'Update DB',self)
-        self.acUpdateDB.setShortcut('F5')
+        self.acUpdateCounters = QtGui.QAction(QtGui.QIcon.fromTheme('view-refresh'),'Update counters',self)
+        self.acUpdateCounters.setShortcut('F5')
+        self.acUpdateCounters.setStatusTip('Update counters')
+        self.connect(self.acUpdateCounters,QtCore.SIGNAL('triggered()'),self.update_counters)
+
+        self.acUpdateDB = QtGui.QAction(QtGui.QIcon('gui/icons/coffer.ico'),'Update DB',self)
+        #self.acUpdateDB.setShortcut('F5')
         self.acUpdateDB.setStatusTip('Update DB')
         self.connect(self.acUpdateDB,QtCore.SIGNAL('triggered()'),self.update_database)
 
@@ -76,6 +81,7 @@ class QCoffer(QtGui.QMainWindow):
 
         self.toolbar = self.addToolBar(u'Feeds')
         self.toolbar.addAction(self.acQuit)
+        self.toolbar.addAction(self.acUpdateCounters)
         self.toolbar.addAction(self.acUpdateDB)
         self.toolbar.addAction(self.acAddFeed)
         self.toolbar.addAction(self.acDeleteFeed)
@@ -90,6 +96,9 @@ class QCoffer(QtGui.QMainWindow):
 
         self.threads_access = QtCore.QMutex()
         self.threads = []
+        self.update_counters()
+
+    def update_counters(self):
         thread = QCounterUpdateThread(self,
                                       [self.feed_table.item(row,0) \
                                        for row in range(self.feed_table.rowCount())])
@@ -102,9 +111,14 @@ class QCoffer(QtGui.QMainWindow):
             dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dock)
 
-    def add_thread(self,thread):
+    def add_thread(self,new_thread):
         self.threads_access.lock()
-        self.threads.append(thread)
+        aux_threads = []
+        for thread in self.threads:
+            if thread.isRunning():
+                aux_threads.append(thread)
+        aux_threads.append(new_thread)
+        self.threads = aux_threads
         self.threads_access.unlock()
 
     def del_thread(self,thread):

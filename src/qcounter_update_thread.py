@@ -6,9 +6,7 @@ Created on 2011/06/11
 @author: Johannes Goller
 '''
 
-import sys
-from coffer import Coffer
-from PyQt4 import QtGui,QtCore
+from PyQt4 import QtCore
 
 class QCounterUpdateThread(QtCore.QThread):
     def __init__(self,qcoffer,itemlist):
@@ -26,11 +24,12 @@ class QCounterUpdateThread(QtCore.QThread):
 
     def run(self):
         for qview_feed_items in self.itemlist:
+            # qview_feed_items.setText('...')
             if self.do_stop:
                 break
             feed_source = qview_feed_items.feed_source
             count = 0
-            for item in self.qcoffer.coffer.current_items_feed(self.qcoffer.coffer.clone_db_session(),
+            for _item in self.qcoffer.coffer.current_items_feed(self.qcoffer.coffer.clone_db_session(),
                                                                feed_source,True,True,False):
                 count += 1
             qview_feed_items.setText('%d' % count)
