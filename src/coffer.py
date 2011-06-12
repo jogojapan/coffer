@@ -143,11 +143,11 @@ class Coffer:
                    or (not exclude_pattern.search(entry.title)):
                 yield (feed.get_id(),entry_id,entry)
 
-    def current_items(self,
-                      session,
-                      enable_ad_filter = False,
-                      check_existence  = False,
-                      debug_enabled    = False):
+    def current_items_in_session(self,
+                                 session,
+                                 enable_ad_filter = False,
+                                 check_existence  = False,
+                                 debug_enabled    = False):
         '''
         Returns a generator for the list of current items, i.e. the
         current list of fresh items returned by all known feeds.
