@@ -18,7 +18,7 @@ class QViewFeedItems(QtGui.QTableWidgetItem):
     def __init__(self,feed_source):
         QtGui.QTableWidgetItem.__init__(self,
                                         QtGui.QIcon.fromTheme('zoom-in'),
-                                        '0',
+                                        '?',
                                         QViewFeedItems.TYPE)
         self.setStatusTip('View new items for %s' % feed_source.name)
         self.feed_source = feed_source
@@ -80,15 +80,35 @@ class QCoffer(QtGui.QMainWindow):
         self.menuFeeds.addAction(self.acDeleteFeed)
         self.menuFeeds.addAction(self.acQuit)
 
+        self.threads_access = QtCore.QMutex()
+        self.threads = []
+        self.add_thread(QCounterUpdateThread(self,
+                                             [self.feed_table.item(row,0) \
+                                              for row in range(self.feed_table.rowCount)]))
+
     def view_feed_items(self,table_widget_item):
         if table_widget_item.type() == QViewFeedItems.TYPE:
             dock = QItemList(self,self.coffer,table_widget_item.feed_source)
             dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dock)
 
+    def add_thread(self,thread):
+        self.threads_access.lock()
+        self.threads.append(thread)
+        self.threads_access.unlock()
+
+    def del_thread(self,thread):
+        self.threads_access.lock()
+        if thread in self.threads:
+            self.threads.remove(thread)
+        self.threads_access.unlock()
+
     def closeEvent(self,event):
         # QtGui.QMessageBox.information(self,u'Notification',u'Finishing.',
         #                               QtGui.QMessageBox.Ok)
+        for thread in self.threads:
+            thread.do_stop()
+            thread.wait()
         self.coffer.finish()
         event.accept()
 
