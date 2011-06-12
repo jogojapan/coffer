@@ -97,6 +97,47 @@ class Coffer:
         else:
             return None
 
+    def current_items_feed(self,
+                           feed,
+                           enable_ad_filter = False,
+                           check_existence  = False,
+                           debug_enabled    = False):
+        '''
+        Returns a generator for the list of current items, i.e. the
+        current list of fresh items returned by all known feeds.
+        @param enable_ad_filter: if True, advertisements will be filtered out
+                       using the predefined regex
+        @param check_existence: if True, only entries that are not already
+                       stored in the items database will be returned.
+        '''
+        if enable_ad_filter and len(feed.ad_filters) > 0:
+            exclude_pattern = re.compile(u'|'.join(feed.ad_filters))
+        feed_results = feedparser.parse(feed.get_url())
+        for entry in feed_results.entries:
+            if 'link' not in entry.keys():
+                sys.stderr.write((u'No link found in this item: "%s"\n' \
+                                  % entry.title).encode('utf-8'))
+                if debug_enabled:
+                    sys.stderr.write('Keys:\n%s\n' % str(entry.keys()))
+                continue
+            if 'id' not in entry.keys():
+                if debug_enabled:
+                    sys.stderr.write((u'No entry id found in this item: "%s"\n' \
+                                      % entry.title).encode('utf-8'))
+                entry_id = entry.link
+                if debug_enabled:
+                    sys.stderr.write('Keys:\n%s\n' % str(entry.keys()))
+                    sys.stderr.write((u'Using link [%s] instead of id.\n' \
+                                      % entry_id).encode('utf-8'))
+            else:
+                entry_id = entry.id
+            if check_existence:
+                if self._item_storage.exists(entry_id):
+                    continue
+            if (not enable_ad_filter) or (len(feed.ad_filters) == 0) \
+                   or (not exclude_pattern.search(entry.title)):
+                yield (feed.get_id(),entry_id,entry)
+
     def current_items(self,
                       enable_ad_filter = False,
                       check_existence  = False,
@@ -110,32 +151,8 @@ class Coffer:
                        stored in the items database will be returned.
         '''
         for feed in self._feed_storage.feeds():
-            if enable_ad_filter and len(feed.ad_filters) > 0:
-                exclude_pattern = re.compile(u'|'.join(feed.ad_filters))
-            feed_results = feedparser.parse(feed.get_url())
-            for entry in feed_results.entries:
-                if 'link' not in entry.keys():
-                    sys.stderr.write((u'No link found in this item: "%s"\n' \
-                                      % entry.title).encode('utf-8'))
-                    if debug_enabled:
-                        sys.stderr.write('Keys:\n%s\n' % str(entry.keys()))
-                    continue
-                if 'id' not in entry.keys():
-                    if debug_enabled:
-                        sys.stderr.write((u'No entry id found in this item: "%s"\n' \
-                                          % entry.title).encode('utf-8'))
-                    entry_id = entry.link
-                    if debug_enabled:
-                        sys.stderr.write('Keys:\n%s\n' % str(entry.keys()))
-                        sys.stderr.write((u'Using link [%s] instead of id.\n' \
-                                          % entry_id).encode('utf-8'))
-                else:
-                    entry_id = entry.id
-                if check_existence:
-                    if self._item_storage.exists(entry_id):
-                        continue
-                if (not enable_ad_filter) or (not exclude_pattern.search(entry.title)):
-                    yield (feed.get_id(),entry_id,entry)
+            for item in self.current_items_feed(feed,enable_ad_filter,check_existence,debug_enabled):
+                yield item
 
     def fetch_and_store(self,targets):
         '''

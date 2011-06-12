@@ -11,6 +11,17 @@ import getopt
 from ConfigParser import SafeConfigParser
 from coffer import Coffer
 from PyQt4 import QtGui,QtCore
+from qitemlist import QItemList
+
+class QViewFeedItems(QtGui.QTableWidgetItem):
+    TYPE = QtGui.QTableWidgetItem.UserType
+    def __init__(self,feed_source):
+        QtGui.QTableWidgetItem.__init__(self,
+                                        QtGui.QIcon.fromTheme('zoom-in'),
+                                        '0',
+                                        QViewFeedItems.TYPE)
+        self.setStatusTip('View new items for %s' % feed_source.name)
+        self.feed_source = feed_source
 
 class QCoffer(QtGui.QMainWindow):
     def __init__(self,config_path):
@@ -26,13 +37,18 @@ class QCoffer(QtGui.QMainWindow):
         self.setWindowTitle(u'Coffer - A Corpus Feed Reader')
 
         feed_count = self._coffer._feed_storage.num_feeds()
-        self.feed_table = QtGui.QTableWidget(feed_count,2,self)
+        self.feed_table = QtGui.QTableWidget(feed_count,3,self)
         row = 0
         for feed_source in self._coffer._feed_storage.feeds():
-            self.feed_table.setItem(row,0,QtGui.QTableWidgetItem(feed_source.name))
-            self.feed_table.setItem(row,1,QtGui.QTableWidgetItem(feed_source.url))
+            # Function
+            action_item = QViewFeedItems(feed_source)
+            self.feed_table.setItem(row,0,action_item)
+            # Contents
+            self.feed_table.setItem(row,1,QtGui.QTableWidgetItem(feed_source.name))
+            self.feed_table.setItem(row,2,QtGui.QTableWidgetItem(feed_source.url))
             row += 1
         self.feed_table.resizeColumnsToContents()
+        self.feed_table.itemClicked.connect(self.view_feed_items)
         self.adjust_width()
         self.setCentralWidget(self.feed_table)
 
@@ -63,6 +79,12 @@ class QCoffer(QtGui.QMainWindow):
         self.menuFeeds.addAction(self.acAddFeed)
         self.menuFeeds.addAction(self.acDeleteFeed)
         self.menuFeeds.addAction(self.acQuit)
+
+    def view_feed_items(self,table_widget_item):
+        if table_widget_item.type() == QViewFeedItems.TYPE:
+            dock = QItemList(self,self._coffer,table_widget_item.feed_source)
+            dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+            self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dock)
 
     def closeEvent(self,event):
         # QtGui.QMessageBox.information(self,u'Notification',u'Finishing.',
