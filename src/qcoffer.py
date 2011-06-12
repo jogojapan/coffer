@@ -12,13 +12,14 @@ from ConfigParser import SafeConfigParser
 from coffer import Coffer
 from PyQt4 import QtGui,QtCore
 from qitemlist import QItemList
+from qcounter_update_thread import QCounterUpdateThread
 
 class QViewFeedItems(QtGui.QTableWidgetItem):
     TYPE = QtGui.QTableWidgetItem.UserType
     def __init__(self,feed_source):
         QtGui.QTableWidgetItem.__init__(self,
                                         QtGui.QIcon.fromTheme('zoom-in'),
-                                        '?',
+                                        ' ? ',
                                         QViewFeedItems.TYPE)
         self.setStatusTip('View new items for %s' % feed_source.name)
         self.feed_source = feed_source
@@ -82,9 +83,11 @@ class QCoffer(QtGui.QMainWindow):
 
         self.threads_access = QtCore.QMutex()
         self.threads = []
-        self.add_thread(QCounterUpdateThread(self,
-                                             [self.feed_table.item(row,0) \
-                                              for row in range(self.feed_table.rowCount)]))
+        thread = QCounterUpdateThread(self,
+                                      [self.feed_table.item(row,0) \
+                                       for row in range(self.feed_table.rowCount())])
+        self.add_thread(thread)
+        thread.start()
 
     def view_feed_items(self,table_widget_item):
         if table_widget_item.type() == QViewFeedItems.TYPE:
@@ -107,8 +110,9 @@ class QCoffer(QtGui.QMainWindow):
         # QtGui.QMessageBox.information(self,u'Notification',u'Finishing.',
         #                               QtGui.QMessageBox.Ok)
         for thread in self.threads:
-            thread.do_stop()
-            thread.wait()
+            if thread.isRunning():
+                thread.stop_now()
+                thread.wait()
         self.coffer.finish()
         event.accept()
 

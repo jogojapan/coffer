@@ -56,6 +56,10 @@ class Coffer:
         # Content fetcher configuration
         self._fetcher = Fetcher(config_parser)
 
+    def clone_db_session(self):
+        clone_session = sessionmaker(bind=self._engine)
+        return clone_session()
+
     def finish(self):
         '''
         Waits for all external processes started by coffer to finish.
@@ -98,6 +102,7 @@ class Coffer:
             return None
 
     def current_items_feed(self,
+                           session,
                            feed,
                            enable_ad_filter = False,
                            check_existence  = False,
@@ -132,11 +137,28 @@ class Coffer:
             else:
                 entry_id = entry.id
             if check_existence:
-                if self._item_storage.exists(entry_id):
+                if self._item_storage.exists_in_session(session,entry_id):
                     continue
             if (not enable_ad_filter) or (len(feed.ad_filters) == 0) \
                    or (not exclude_pattern.search(entry.title)):
                 yield (feed.get_id(),entry_id,entry)
+
+    def current_items(self,
+                      session,
+                      enable_ad_filter = False,
+                      check_existence  = False,
+                      debug_enabled    = False):
+        '''
+        Returns a generator for the list of current items, i.e. the
+        current list of fresh items returned by all known feeds.
+        @param enable_ad_filter: if True, advertisements will be filtered out
+                       using the predefined regex
+        @param check_existence: if True, only entries that are not already
+                       stored in the items database will be returned.
+        '''
+        for feed in self._feed_storage.feeds():
+            for item in self.current_items_feed(session,feed,enable_ad_filter,check_existence,debug_enabled):
+                yield item
 
     def current_items(self,
                       enable_ad_filter = False,
@@ -151,7 +173,7 @@ class Coffer:
                        stored in the items database will be returned.
         '''
         for feed in self._feed_storage.feeds():
-            for item in self.current_items_feed(feed,enable_ad_filter,check_existence,debug_enabled):
+            for item in self.current_items_feed(self._session,feed,enable_ad_filter,check_existence,debug_enabled):
                 yield item
 
     def fetch_and_store(self,targets):

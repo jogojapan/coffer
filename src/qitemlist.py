@@ -15,7 +15,7 @@ class QItemList(QtGui.QDockWidget):
         self._coffer = coffer
 
         table_data = []
-        for item in coffer.current_items_feed(feed_source,True,True,False):
+        for item in coffer.current_items_feed(coffer._session,feed_source,True,True,False):
             table_data.append(item)
         item_table = QtGui.QTableWidget(len(table_data),2,self)
         row = 0

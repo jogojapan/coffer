@@ -61,9 +61,12 @@ class ItemStorage:
         # Create tables that don't exits yet
         Item.metadata.create_all(self._engine)
 
-    def exists(self,original_id):
-        c = self._session.query(Item).filter(Item.original_id == original_id).count()
+    def exists_in_session(self,session,original_id):
+        c = session.query(Item).filter(Item.original_id == original_id).count()
         return (c != 0)
+
+    def exists(self,original_id):
+        return self.exists_in_session(self._session,original_id)
 
     def items(self):
         for item in self._session.query(Item).all():
